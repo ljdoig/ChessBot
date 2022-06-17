@@ -7,9 +7,9 @@ The negamax algorithm is a variant of minimax, which takes into account the zero
 however good a move is for you, that's how bad it is for your opponent and vice versa. 
 Furthermore, at each point in the game however much you are winning by, 
 that's how much your opponent is losing by. You can find a brief description below, 
-or more at https://en.wikipedia.org/wiki/Negamax.
+or more [here](https://en.wikipedia.org/wiki/Negamax).
 
-The bot constructs an abstract tree, where the nodes are states of the board, 
+The bot constructs a tree, where the nodes are states of the board, 
 joined by a legal move. The 'value' of a player's move to a player is equivalent to how 
 'bad' the resulting state of the board is for their opponent. This means we need a way to evaluate
 the goodness/badness of a position of the board (for leaf nodes, this is done mainly by considering
@@ -23,3 +23,6 @@ by 1 until we run out of time (the bot has a 5-second time limit).
 The above image shows the bot choosing to promote a pawn to a knight, leaving the two knights 
 protecting each other. The anticipated sequence shows the chain of mins and maxes that negamaxing
 produced.
+
+This project uses the [LibGDX](https://libgdx.com/) game engine to render and 
+process user input.
