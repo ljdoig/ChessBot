@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.chessbot.ChessGame;
+import com.chessbot.FontLoader;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,7 +27,8 @@ public class Board {
     public static boolean flipBoard = false;
     private static final int fontSize = ChessGame.SIZE / 25;
     private static final int fontSpacing = ChessGame.SIZE / 200;
-    private static final BitmapFont font = new BitmapFont();
+    private static final BitmapFont font =
+            FontLoader.load("font/Lotuscoder-0WWrG.ttf", 20);
     private static final SpriteBatch batch = new SpriteBatch();
     private int numBlack = 0;
     private int numWhite = 0;
@@ -124,8 +126,9 @@ public class Board {
         float rowOneY = ChessGame.SIZE - (fontSpacing + fontSize) * (0.75f);
         float rowTwoY = ChessGame.SIZE - (fontSpacing + fontSize) * (1.75f);
         font.draw(
-                batch, String.format("Turn: %3d", fullmoveNumber),
-                colOneX, rowOneY);
+                batch, String.format("Turn:            %3d", fullmoveNumber),
+                colOneX, rowOneY
+        );
         font.draw(
                 batch, String.format("Half-move clock: %3d", halfmoveClock),
                 colOneX, rowTwoY
