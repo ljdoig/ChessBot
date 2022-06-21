@@ -8,15 +8,16 @@ public class Bishop extends Piece {
     private static final Texture BLACK_IMAGE = new Texture("pieces/black/bishop.png");
     private static final Texture WHITE_IMAGE = new Texture("pieces/white/bishop.png");
     private static final int value = 3;
+    private static final int pieceIndex = 2;
 
     public Bishop(Side side, int row, int col, boolean unmoved) {
-        super(side, value, row, col, unmoved,
+        super(side, value, pieceIndex, row, col, unmoved,
                 (side == Side.WHITE) ? WHITE_IMAGE : BLACK_IMAGE);
     }
 
     // For promotion
     public Bishop(Piece piece, Square to) {
-        super(piece, value, to,
+        super(piece, value, pieceIndex, to,
                 (piece.side == Side.WHITE) ? WHITE_IMAGE : BLACK_IMAGE);
     }
 

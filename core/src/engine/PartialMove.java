@@ -1,5 +1,6 @@
-package engine;/* Used for En Passant and Castling, where multiple pieces are 'moved' around
-   but these mini-moves shouldn't be considered a move in the full sense */
+package engine;
+/* Used for En Passant and Castling, where multiple pieces are 'moved' around
+   but these mini-moves shouldn't be recorded as a move in the full sense */
 
 public class PartialMove extends Move{
 
@@ -13,9 +14,13 @@ public class PartialMove extends Move{
     }
 
     @Override
-    public void register() {}
+    public void register() {
+        super.updateZobrist();
+    }
 
     @Override
-    public void deregister() {}
+    public void deregister() {
+        super.updateZobrist();
+    }
 }
 

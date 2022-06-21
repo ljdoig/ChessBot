@@ -8,6 +8,7 @@ import com.chessbot.FontLoader;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class Board {
@@ -23,18 +24,19 @@ public class Board {
             "board/pink_square_" + ChessGame.SIZE + ".png");
     private static final Texture GREEN_SQUARE = new Texture(
             "board/green_square_" + ChessGame.SIZE + ".png");
-    private static final int size = 8;
+    private static final int SIZE = 8;
+    private static final int NUM_PIECE_TYPES = 6;
     public static boolean flipBoard = false;
-    private static final int fontSize = ChessGame.SIZE / 25;
-    private static final int fontSpacing = ChessGame.SIZE / 200;
+    private static final int fontSize = ChessGame.SIZE / 40;
+    private static final int fontSpacing = ChessGame.SIZE / 50;
     private static final BitmapFont font =
-            FontLoader.load("font/Lotuscoder-0WWrG.ttf", 20);
+            FontLoader.load("font/Lotuscoder-0WWrG.ttf", fontSize);
     private static final SpriteBatch batch = new SpriteBatch();
     private int numBlack = 0;
     private int numWhite = 0;
     private Piece[] whitePieces;
     private Piece[] blackPieces;
-    private final Piece[][] contents = new Piece[size][size];
+    private final Piece[][] contents = new Piece[SIZE][SIZE];
     public final ArrayList<Move> moveHistory = new ArrayList<>();
     private King whiteKing;
     private King blackKing;
@@ -49,6 +51,8 @@ public class Board {
     private int halfmoveClock = 0;
     private int fullmoveNumber = 1;
     public int getAllValidMoveCalls = 0;
+    private final int[][][] zobristTable = initialiseZobristTable();
+    private int zobrist = 0;
 
     public Board() {}
 
@@ -78,7 +82,7 @@ public class Board {
         Piece pieceCopy;
         for (Piece piece : pieces) {
             pieceCopy = piece.makeCopy(this);
-            getPieces(piece.side)[piece.index] = pieceCopy;
+            getPieces(piece.side)[piece.arrayIndex] = pieceCopy;
             if (!piece.hasBeenTaken()) {
                 addPiece(pieceCopy);
             }
@@ -121,24 +125,29 @@ public class Board {
     }
 
     private void displayInfo() {
-        int colOneX = IMAGE.getWidth() + 2 * fontSpacing;
-        // double colTwoX = IMAGE.getWidth() + 85 * fontSpacing;
+        int col = IMAGE.getWidth() + fontSpacing;
         float rowOneY = ChessGame.SIZE - (fontSpacing + fontSize) * (0.75f);
         float rowTwoY = ChessGame.SIZE - (fontSpacing + fontSize) * (1.75f);
+        float rowThreeY = ChessGame.SIZE - (fontSpacing + fontSize) * (2.75f);
         font.draw(
-                batch, String.format("Turn:            %3d", fullmoveNumber),
-                colOneX, rowOneY
+                batch, String.format("Turn:           %3d", fullmoveNumber),
+                col, rowOneY
         );
         font.draw(
-                batch, String.format("Half-move clock: %3d", halfmoveClock),
-                colOneX, rowTwoY
+                batch, String.format("Half-move clock:%3d", halfmoveClock),
+                col, rowTwoY
+        );
+        String binaryZobrist = Integer.toBinaryString(zobrist);
+        font.draw(
+                batch, String.format("Zobrist hash:     %s", zobrist),
+                col, rowThreeY
         );
         ArrayList<String> other = otherInfo();
         for (int i = 0; i < other.size(); i++) {
             font.draw(
                     batch, other.get(i),
-                    colOneX,
-                    ChessGame.SIZE - ((fontSpacing + fontSize) * (i + 3.75f))
+                    col,
+                    ChessGame.SIZE - ((fontSpacing + fontSize) * (i + 4.75f))
             );
         }
     }
@@ -212,10 +221,14 @@ public class Board {
     }
 
     public void undoLastMove() {
-        getLastMove().undo();
-        focusedOn = null;
-        stalemated = false;
-        checkmated = false;
+        if (getLastMove() != null) {
+            getLastMove().undo();
+            focusedOn = null;
+            stalemated = false;
+            checkmated = false;
+        } else {
+            System.out.println("Nothing to undo");
+        }
     }
 
     public ArrayList<Move> getAllValidMoves() {
@@ -229,9 +242,9 @@ public class Board {
         }};
     }
 
-    public ArrayList<Move> getCaptures() {
+    public ArrayList<Move> getInterestingMoves() {
         return getAllValidMoves().stream()
-                .filter(p -> p.taken != null)
+                .filter(Move::isInteresting)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
@@ -341,10 +354,10 @@ public class Board {
         StringBuilder rowStr;
         String pieceStr;
         int blank;
-        for (int row = 0; row < size; row++) {
+        for (int row = 0; row < SIZE; row++) {
             rowStr = new StringBuilder();
             blank = 0;
-            for (int col = 0; col < size; col++) {
+            for (int col = 0; col < SIZE; col++) {
                 Piece piece = contentsAt(row, col);
                 if (piece == null) {
                     blank++;
@@ -419,9 +432,9 @@ public class Board {
         int charInRow;
         ArrayList<Piece> whitePieces = new ArrayList<>();
         ArrayList<Piece> blackPieces = new ArrayList<>();
-        for (int row = 0; row < size; row++) {
+        for (int row = 0; row < SIZE; row++) {
             charInRow = 0;
-            for (int col = 0; col < size; col++) {
+            for (int col = 0; col < SIZE; col++) {
                 char currentChar = boardRows[row].charAt(charInRow);
                 if (Character.isDigit(currentChar)) {
                     col += Character.getNumericValue(currentChar) - 1;
@@ -729,8 +742,8 @@ public class Board {
         int whiteCount = 0;
         int blackCount = 0;
         try {
-            for (int row = 0; row < size; row++) {
-                for (int col = 0; col < size; col++) {
+            for (int row = 0; row < SIZE; row++) {
+                for (int col = 0; col < SIZE; col++) {
                     piece = contentsAt(row, col);
                     if (piece != null) {
                         assert piece.square().col == col :
@@ -796,8 +809,8 @@ public class Board {
         System.out.println("Board: " + this);
         Piece piece;
         String pieceStr;
-        for (int row = 0; row < size; row++) {
-            for (int col = 0; col < size; col++) {
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
                 piece = contentsAt(row, col);
                 if (piece == null) {
                     System.out.print("|   ");
@@ -855,7 +868,7 @@ public class Board {
 
     public int oneSidedEval(Side side) {
         int evaluation = 1000 * material(side);
-        boolean[] pawnCols = new boolean[size];
+        boolean[] pawnCols = new boolean[SIZE];
         for (Piece piece : getPieces(side)) {
             if (piece.hasBeenTaken()) {
                 continue;
@@ -957,5 +970,27 @@ public class Board {
     }
 
 
+    private int[][][] initialiseZobristTable() {
+        int[][][] table = new int[SIZE][SIZE][NUM_PIECE_TYPES * 2];
+        Random random = new Random();
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                for (int k = 0; k < NUM_PIECE_TYPES * 2; k++) {
+                    table[i][j][k] = random.nextInt();
+                }
+            }
+        }
+        return table;
+    }
+
+    public void updateZobrist(Square square, Piece piece) {
+        int pieceIndex = piece.pieceIndex +
+                (piece.side == Side.WHITE ? NUM_PIECE_TYPES : 0);
+        zobrist ^= zobristTable[square.col][square.row][pieceIndex];
+    }
+
+    public Integer get_zobrist() {
+        return zobrist;
+    }
 }
 

@@ -14,26 +14,29 @@ public abstract class Piece {
     private boolean unmoved;
     private final Texture image;
     private boolean taken = false;
-    public final int index;
+    public final int arrayIndex;
+    public final int pieceIndex;
 
-    public Piece(Side side, int value, int row, int col, boolean unmoved, Texture image) {
+    public Piece(Side side, int value, int pieceIndex, int row, int col, boolean unmoved, Texture image) {
         this.side = side;
         this.value = value;
+        this.pieceIndex = pieceIndex;
         this.square = new Square(row, col);
         this.unmoved = unmoved;
         this.image = image;
         this.board = ChessGame.getCurrentBoard();
-        this.index = board.getIndex(this);
+        this.arrayIndex = board.getIndex(this);
         board.addPiece(this);
     }
 
     // For promoted pawns
-    public Piece(Piece promotedFrom, int value, Square to, Texture image) {
+    public Piece(Piece promotedFrom, int value, int pieceIndex, Square to, Texture image) {
         this.side = promotedFrom.side;
         this.value = value;
+        this.pieceIndex = pieceIndex;
         square = to;
         unmoved = false;
-        this.index = promotedFrom.index;
+        this.arrayIndex = promotedFrom.arrayIndex;
         this.image = image;
         this.board = promotedFrom.board;
     }
@@ -42,12 +45,13 @@ public abstract class Piece {
     public Piece(Piece piece, Board newBoard) {
         this.side = piece.side;
         this.value = piece.value;
+        this.pieceIndex = piece.pieceIndex;
         this.square = piece.square;
         this.unmoved = piece.unmoved;
         this.image = piece.image;
         this.board = newBoard;
         this.taken = piece.taken;
-        this.index = piece.index;
+        this.arrayIndex = piece.arrayIndex;
     }
 
     protected abstract Piece makeCopy(Board newBoard);
@@ -288,7 +292,7 @@ public abstract class Piece {
             Point location = square.getLocation(true);
             batch.draw(
                     image,
-                    location.x - image.getWidth() /2,
+                    location.x - image.getWidth() / 2,
                     location.y - image.getHeight() / 2
             );
         }
@@ -346,7 +350,7 @@ public abstract class Piece {
                 ", square=" + square +
                 ", unmoved=" + unmoved +
                 ", taken=" + taken +
-                ", index=" + index +
+                ", index=" + arrayIndex +
                 '}';
     }
 

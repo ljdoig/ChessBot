@@ -98,6 +98,7 @@ public class Move implements Comparable<Move> {
     }
 
     public void register() {
+        updateZobrist();
         if (side == Side.BLACK) {
             board.setFullmoveNumber(board.getFullmoveNumber() + 1);
         }
@@ -106,11 +107,6 @@ public class Move implements Comparable<Move> {
         } else {
             board.setHalfmoveClock(board.getHalfmoveClock() + 1);
         }
-        if (side != board.getNextTurn()) {
-            System.out.println(this);
-            System.out.println("move is not next turn! " + this + " was the move, next turn: " + board.getNextTurn());
-            board.printSnapShot();
-        }
         assert side == board.getNextTurn();
         assert board.getLastMove() == null || board.getLastMove().side == side.opponent();
         board.moveHistory.add(0, this);
@@ -118,6 +114,7 @@ public class Move implements Comparable<Move> {
     }
 
     public void deregister() {
+        updateZobrist();
         if (side == Side.BLACK) {
             board.setFullmoveNumber(board.getFullmoveNumber() - 1);
         }
@@ -125,11 +122,13 @@ public class Move implements Comparable<Move> {
         board.updateNextTurn();
         assert board.moveHistory.get(0) == this : this;
         board.moveHistory.remove(0);
-        assert side == board.getNextTurn() : "undo hasn't got correct 'next turn'. " + this + " was the move, next turn: " + board.getNextTurn();
-        if (!(board.getLastMove() == null || board.getLastMove().side != side)) {
-            System.out.println(board.moveHistory);
-            board.printSnapShot();
-            System.exit(1);
+    }
+
+    protected void updateZobrist() {
+        board.updateZobrist(from, piece);
+        board.updateZobrist(to, piece);
+        if (taken != null) {
+            board.updateZobrist(to, taken);
         }
     }
 
@@ -192,7 +191,8 @@ public class Move implements Comparable<Move> {
             } else {
                 scoreString = score.toString();
             }
-            return " (" + String.format("%6s", scoreString) + ")";
+            String openBracket = (score >= 0) ? " ( " : " (";
+            return openBracket + String.format("%s", scoreString) + ")";
         } else {
             return "";
         }

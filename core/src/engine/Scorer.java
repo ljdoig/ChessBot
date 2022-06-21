@@ -86,11 +86,10 @@ public class Scorer implements Runnable {
             negamax = scoringNode.negamax(
                     depth,
                     -Integer.MAX_VALUE,
-                    Integer.MAX_VALUE,
-                    BONUS_DEPTH
+                    Integer.MAX_VALUE
             );
             if (Thread.currentThread().isInterrupted()) {
-                System.out.println("Num quiescence cutoffs:" + Node.numCaps);
+                System.out.println("\nNum quiescence cutoffs: " + Node.numCaps);
                 return;
             }
             // copy bestMove but set board to the actual game board

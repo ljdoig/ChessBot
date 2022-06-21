@@ -8,9 +8,10 @@ public class Pawn extends Piece {
     private static final Texture BLACK_IMAGE = new Texture("pieces/black/pawn.png");
     private static final Texture WHITE_IMAGE = new Texture("pieces/white/pawn.png");
     private static final int value = 1;
+    private static final int pieceIndex = 0;
 
     public Pawn(Side side, int row, int col) {
-        super(side, value, row, col,
+        super(side, value, pieceIndex, row, col,
                 (side == Side.WHITE) ? (row == 6) : (row == 1),
                 (side == Side.WHITE) ? WHITE_IMAGE : BLACK_IMAGE);
     }

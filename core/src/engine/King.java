@@ -8,10 +8,11 @@ public class King extends Piece {
     private static final Texture BLACK_IMAGE = new Texture("pieces/black/king.png");
     private static final Texture WHITE_IMAGE = new Texture("pieces/white/king.png");
     private static final int value = 0;
+    private static final int pieceIndex = 5;
     private boolean hasCastled = false;
 
     public King(Side side, int row, int col) {
-        super(side, value, row, col,
+        super(side, value, pieceIndex, row, col,
                ((side == Side.WHITE) ? (row == 7) : (row == 0)) && col == 4,
                 (side == Side.WHITE) ? WHITE_IMAGE : BLACK_IMAGE);
     }
@@ -66,6 +67,7 @@ public class King extends Piece {
         Move move;
         int toRow, toCol;
         Square to;
+        // for all surrounding squares
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
                 if (i == 0 && j == 0) {
@@ -73,9 +75,11 @@ public class King extends Piece {
                 }
                 toRow = square().row + i;
                 toCol = square().col + j;
+                // on the board
                 if (0 <= toRow && toRow <= 7 && 0 <= toCol && toCol <= 7) {
                     to = new Square(toRow, toCol);
                     move = new Move(this, to);
+                    // if square is empty or opponent-occupied
                     if ((board.contentsAt(to) == null || board.contentsAt(to).side != side)
                             && !board.wouldBeInCheck(move, side)) {
                         validMoves.add(move);
@@ -83,6 +87,7 @@ public class King extends Piece {
                 }
             }
         }
+        // only check castling if unmoved
         if (!isUnmoved()) {
             return validMoves;
         }

@@ -7,16 +7,17 @@ import java.util.ArrayList;
 public class Queen extends Piece {
     private static final Texture BLACK_IMAGE = new Texture("pieces/black/queen.png");
     private static final Texture WHITE_IMAGE = new Texture("pieces/white/queen.png");
-    private static final int value = 9;
+    public static final int value = 9;
+    private static final int pieceIndex = 4;
 
     public Queen(Side side, int row, int col, boolean unmoved) {
-        super(side, value, row, col, unmoved,
+        super(side, value, pieceIndex, row, col, unmoved,
                 (side == Side.WHITE) ? WHITE_IMAGE : BLACK_IMAGE);
     }
 
     // For promotion
     public Queen(Piece piece, Square to) {
-        super(piece, value, to,
+        super(piece, value, pieceIndex, to,
                 (piece.side == Side.WHITE) ? WHITE_IMAGE : BLACK_IMAGE);
     }
 

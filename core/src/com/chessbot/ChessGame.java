@@ -52,7 +52,7 @@ public class ChessGame extends ApplicationAdapter {
 		ScreenUtils.clear(0, 0, 0, 1);
 		board.render();
 
-		if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)) {
+		if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
 			if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
 				board = new Board();
 				board.initialise(testSetup1);
@@ -86,11 +86,15 @@ public class ChessGame extends ApplicationAdapter {
 			}
 		}
 
+		if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+			Gdx.app.exit();
+			return;
+		}
+
 		// allow move take-back for human against bot
-		if (Gdx.input.isKeyJustPressed(Input.Keys.Z) &&
-				automaticSides.size() == 1) {
+		if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
 			board.undoLastMove();
-			board.undoLastMove();
+			if (automaticSides.size() == 1) board.undoLastMove();
 		}
 
 		if (Gdx.input.isKeyJustPressed(Input.Keys.D)) {

@@ -24,16 +24,19 @@ public class Promotion extends Move {
     public void make() {
         super.make();
         board.setContents(piece.square(), promoteTo);
-        board.getPieces(side)[piece.index] = promoteTo;
+        board.getPieces(side)[piece.arrayIndex] = promoteTo;
+        board.updateZobrist(to, piece);
+        board.updateZobrist(to, promoteTo);
         assert board.pieceArraysMatchBoard(this);
     }
 
     @Override
     public void undo() {
-        board.getPieces(side)[piece.index] = piece;
+        board.getPieces(side)[piece.arrayIndex] = piece;
         super.undo();
+        board.updateZobrist(to, piece);
+        board.updateZobrist(to, promoteTo);
         assert board.pieceArraysMatchBoard(this);
-        assert side == board.getNextTurn() : "undo promotion failed (next turn)! " + this + " was the move, next turn: " + board.getNextTurn() ;
         assert board.getLastMove() == null || board.getLastMove().side == side.opponent();
     }
 

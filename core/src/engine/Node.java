@@ -1,8 +1,9 @@
 package engine;
 
+import java.util.HashMap;
 import java.util.PriorityQueue;
 
-// A conceptual node in the minimax tree representing a state of the board
+// A node in the minimax tree representing a state of the board
 public class Node {
     private static int leafNodes = 0;
 
@@ -10,6 +11,7 @@ public class Node {
     public final Board board;
     public final Move precedingMove;
     private Move bestMove;
+    private static HashMap<Integer, TranspositionEntry> transpositionTable;
 
     public static int numCaps = 0;
 
@@ -17,6 +19,7 @@ public class Node {
         this.isRoot = true;
         this.board = board;
         this.precedingMove = null;
+        transpositionTable = new HashMap<>();
     }
 
     public Node(Move precedingMove) {
@@ -25,33 +28,56 @@ public class Node {
         this.precedingMove = precedingMove;
     }
 
-    public int negamax(int depth, int alpha, int beta, int bonusDepth) {
+    public int negamax(int depth, int alpha, int beta) {
         if (Thread.currentThread().isInterrupted()) {
             return Integer.MAX_VALUE;
         }
-        // don't stop looking ahead if something interesting happens
-        if (depth == 0 && precedingMove != null && precedingMove.isInteresting()) {
-            if (bonusDepth-- > 0) {
-                depth = 1;
-            } else {
-                numCaps++;
+
+        int alphaOrig = alpha;
+
+        TranspositionEntry entry = transpositionTable.get(board.get_zobrist());
+        if (entry != null && entry.depth >= depth) {
+            if (entry.flag == 'E') {
+                // Exact match found
+                return entry.value;
+            } else if (entry.flag == 'L') {
+                // Lower-bound found: increase α if possible
+                if (entry.value > alpha) {
+                    alpha = entry.value;
+                }
+            } else if (entry.flag == 'U') {
+                // Upper-bound found: decrease β if possible
+                if (entry.value < beta) {
+                    beta = entry.value;
+                }
+            }
+            // prune
+            if (alpha >= beta) {
+                return entry.value;
             }
         }
-        if (depth == 0 || board.noValidMoveExists()) {
-            leafNodes++;
-            int evaluation = board.evaluate();
-            updatePrediction(null, evaluation, depth);
-            return evaluation;
+        PriorityQueue<Move> pq;
+        if (depth <= 0) {
+            if (precedingMove == null || !precedingMove.isInteresting()
+                    || board.noValidMoveExists()) {
+                leafNodes++;
+                int evaluation = board.evaluate();
+                updatePrediction(null, evaluation, depth);
+                return evaluation;
+            }
+            pq = new PriorityQueue<>(board.getInterestingMoves());
+        } else {
+            pq = new PriorityQueue<>(board.getAllValidMoves());
         }
-        PriorityQueue<Move> pq = new PriorityQueue<>(board.getAllValidMoves());
-        int nodeValue;
+        int nodeValue = -Integer.MAX_VALUE;
         Node child;
         Move subsequentMove;
         while ((subsequentMove = pq.poll()) != null) {
             subsequentMove.make();
             child = new Node(subsequentMove);
-            nodeValue = -child.negamax(
-                    depth - 1, -beta, -alpha, bonusDepth
+            nodeValue = Math.max(
+                    nodeValue,
+                    -child.negamax(depth - 1, -beta, -alpha)
             );
             subsequentMove.undo();
             if (nodeValue > alpha) {
@@ -62,7 +88,17 @@ public class Node {
                 break;
             }
         }
-        return alpha;
+
+        if (nodeValue <= alphaOrig) {
+            entry = new TranspositionEntry(nodeValue, depth, 'U');
+        } else if (nodeValue >= beta) {
+            entry = new TranspositionEntry(nodeValue, depth, 'L');
+        } else {
+            entry = new TranspositionEntry(nodeValue, depth, 'E');
+        }
+        transpositionTable.put(board.get_zobrist(), entry);
+
+        return nodeValue;
     }
 
     private void updatePrediction(Move subsequentMove, int nodeValue, int depth) {
