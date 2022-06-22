@@ -11,15 +11,13 @@ public class Node {
     public final Board board;
     public final Move precedingMove;
     private Move bestMove;
-    private static HashMap<Integer, TranspositionEntry> transpositionTable;
-
-    public static int numCaps = 0;
+    private static final HashMap<Long, TranspositionEntry> transpositionTable =
+            new HashMap<>();
 
     public Node(Board board) {
         this.isRoot = true;
         this.board = board;
         this.precedingMove = null;
-        transpositionTable = new HashMap<>();
     }
 
     public Node(Move precedingMove) {
@@ -34,41 +32,30 @@ public class Node {
         }
 
         int alphaOrig = alpha;
-
-        TranspositionEntry entry = transpositionTable.get(board.get_zobrist());
+        TranspositionEntry entry = transpositionTable.get(board.getZobrist());
         if (entry != null && entry.depth >= depth) {
             if (entry.flag == 'E') {
                 // Exact match found
                 return entry.value;
             } else if (entry.flag == 'L') {
                 // Lower-bound found: increase α if possible
-                if (entry.value > alpha) {
-                    alpha = entry.value;
-                }
+                alpha = Math.max(entry.value, alpha);
             } else if (entry.flag == 'U') {
                 // Upper-bound found: decrease β if possible
-                if (entry.value < beta) {
-                    beta = entry.value;
-                }
+                beta = Math.min(entry.value, beta);
             }
             // prune
             if (alpha >= beta) {
                 return entry.value;
             }
         }
-        PriorityQueue<Move> pq;
-        if (depth <= 0) {
-            if (precedingMove == null || !precedingMove.isInteresting()
-                    || board.noValidMoveExists()) {
-                leafNodes++;
-                int evaluation = board.evaluate();
-                updatePrediction(null, evaluation, depth);
-                return evaluation;
-            }
-            pq = new PriorityQueue<>(board.getInterestingMoves());
-        } else {
-            pq = new PriorityQueue<>(board.getAllValidMoves());
+
+        if (depth == 0 || board.noValidMoveExists()) {
+            int evaluation = quiesce(alpha, beta);
+            updatePrediction(null, evaluation, depth);
+            return evaluation;
         }
+        PriorityQueue<Move> pq = new PriorityQueue<>(board.getAllValidMoves());
         int nodeValue = -Integer.MAX_VALUE;
         Node child;
         Move subsequentMove;
@@ -96,9 +83,31 @@ public class Node {
         } else {
             entry = new TranspositionEntry(nodeValue, depth, 'E');
         }
-        transpositionTable.put(board.get_zobrist(), entry);
+        transpositionTable.put(board.getZobrist(), entry);
 
         return nodeValue;
+    }
+
+    private int quiesce(int alpha, int beta) {
+        leafNodes++;
+        int baseline = board.evaluate();
+        if (baseline >= beta)
+            return beta;
+        if (alpha < baseline)
+            alpha = baseline;
+        int score;
+        PriorityQueue<Move> pq = new PriorityQueue<>(board.getInterestingMoves());
+        Move interestingMove;
+        while ((interestingMove = pq.poll()) != null) {
+            interestingMove.make();
+            score = -quiesce(-beta, -alpha);
+            interestingMove.undo();
+            if (score >= beta)
+                return beta;
+            if (score > alpha)
+                alpha = score;
+        }
+        return alpha;
     }
 
     private void updatePrediction(Move subsequentMove, int nodeValue, int depth) {
@@ -107,7 +116,7 @@ public class Node {
             bestMove.setScore(nodeValue);
             bestMove.setScoreDepth(depth);
         }
-        if (precedingMove != null){
+        if (precedingMove != null) {
             precedingMove.setSuccessor(subsequentMove);
             precedingMove.setScore(-nodeValue);
         }
@@ -127,6 +136,14 @@ public class Node {
 
     public static void resetStartNodeEvaluationCount() {
         leafNodes = 0;
+    }
+
+    public static int getTranspositions() {
+        return transpositionTable.size();
+    }
+
+    public static void resetTranspositionTable() {
+        transpositionTable.clear();
     }
 
 }

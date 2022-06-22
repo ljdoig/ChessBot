@@ -6,7 +6,6 @@ import java.util.Comparator;
 public class Scorer implements Runnable {
     private static final long TIME_CAP_MILLIS = 5000;
     private static final int MIN_DEPTH = 2;
-    private static final int BONUS_DEPTH = 6;
     private static int totalComputeMoveDepth = 0;
     private static int numComputedMoves = 0;
 
@@ -83,13 +82,13 @@ public class Scorer implements Runnable {
 
             moveStartTime = System.currentTimeMillis();
             Node.resetStartNodeEvaluationCount();
+            Node.resetTranspositionTable();
             negamax = scoringNode.negamax(
                     depth,
                     -Integer.MAX_VALUE,
                     Integer.MAX_VALUE
             );
             if (Thread.currentThread().isInterrupted()) {
-                System.out.println("\nNum quiescence cutoffs: " + Node.numCaps);
                 return;
             }
             // copy bestMove but set board to the actual game board
@@ -103,6 +102,8 @@ public class Scorer implements Runnable {
                     (System.currentTimeMillis() - startTime)/1000.0);
             System.out.format("\tLeaf-nodes searched: %d\n",
                     bestMove.getLeafNodesSearchedToScore());
+            System.out.format("\tTranspositions     : %d\n",
+                    Node.getTranspositions());
             depth++;
         }
     }

@@ -21,9 +21,9 @@ public class ChessGame extends ApplicationAdapter {
 	private static final String standardSetup =
 			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 	private static final String testSetup1 =
-			"4k3/1p6/8/8/8/8/PPPB4/2b1K3 b - - 3 3";
+			"r1b1kb1r/pp1ppppp/1qn2n2/2pP4/8/2N1PN2/PPP2PPP/R1BQKB1R b KQkq - 0 5";
 	private static final String testSetup2 =
-			"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2n2Q2/PPPBBPpP/R3K2R w KQkq - 0 20";
+			"r1b1kbnr/pp1pp1pp/2n2p2/2q3B1/8/2N2N2/PPP1PPPP/R2QKB1R w KQkq - 0 6";
 	private static final String testSetup3 =
 			"7r/3P1k1p/4Nn1n/2Q2pp1/p2P4/7P/3K1B2/5BNR w - g6 0 44";
 	private static final String testSetup4 =

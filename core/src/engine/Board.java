@@ -51,8 +51,8 @@ public class Board {
     private int halfmoveClock = 0;
     private int fullmoveNumber = 1;
     public int getAllValidMoveCalls = 0;
-    private final int[][][] zobristTable = initialiseZobristTable();
-    private int zobrist = 0;
+    private final long[][][] zobristTable = initialiseZobristTable();
+    private long zobrist = 0;
 
     public Board() {}
 
@@ -137,7 +137,6 @@ public class Board {
                 batch, String.format("Half-move clock:%3d", halfmoveClock),
                 col, rowTwoY
         );
-        String binaryZobrist = Integer.toBinaryString(zobrist);
         font.draw(
                 batch, String.format("Zobrist hash:     %s", zobrist),
                 col, rowThreeY
@@ -155,7 +154,7 @@ public class Board {
     public ArrayList<String> otherInfo() {
         final Move lastMove = getLastMove();
         return new ArrayList<String>(){{
-            if (lastMove != null) {
+            if (lastMove != null && clickedMove == null) {
                 if (lastMove.getScore() != null) {
                     add(String.format("Last move: (%d leaf-nodes, %.2fs, depth: %d)",
                             lastMove.getLeafNodesSearchedToScore(),
@@ -172,9 +171,6 @@ public class Board {
                 add(endOfGameMessage);
             }
             if (clickedMove != null) {
-                if (lastMove != null) {
-                    add("");
-                }
                 addAll(clickedMoveAnalysis);
             }
         }};
@@ -970,13 +966,13 @@ public class Board {
     }
 
 
-    private int[][][] initialiseZobristTable() {
-        int[][][] table = new int[SIZE][SIZE][NUM_PIECE_TYPES * 2];
-        Random random = new Random();
+    private long[][][] initialiseZobristTable() {
+        long[][][] table = new long[SIZE][SIZE][NUM_PIECE_TYPES * 2];
+        Random random = new Random(0);
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
                 for (int k = 0; k < NUM_PIECE_TYPES * 2; k++) {
-                    table[i][j][k] = random.nextInt();
+                    table[i][j][k] = random.nextLong();
                 }
             }
         }
@@ -989,7 +985,7 @@ public class Board {
         zobrist ^= zobristTable[square.col][square.row][pieceIndex];
     }
 
-    public Integer get_zobrist() {
+    public Long getZobrist() {
         return zobrist;
     }
 }
