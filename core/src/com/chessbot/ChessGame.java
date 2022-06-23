@@ -142,11 +142,19 @@ public class ChessGame extends ApplicationAdapter {
 			ScreenUtils.clear(0, 0, 0, 1);
 			board.render();
 		} else if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-			board.processClick(Gdx.input.getX(), Gdx.input.getY(), false);
+			board.processClick(
+					Gdx.input.getX()/(double) Gdx.graphics.getWidth() * ASPECT_RATIO,
+					Gdx.input.getY()/(double) Gdx.graphics.getHeight(),
+					false
+			);
 			ScreenUtils.clear(0, 0, 0, 1);
 			board.render();
 		} else if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
-			board.processClick(Gdx.input.getX(), Gdx.input.getY(), true);
+			board.processClick(
+					Gdx.input.getX()/(double) Gdx.graphics.getWidth() * ASPECT_RATIO,
+					Gdx.input.getY()/(double) Gdx.graphics.getHeight(),
+					true
+			);
 		}
 	}
 
@@ -155,7 +163,14 @@ public class ChessGame extends ApplicationAdapter {
 	}
 
 	@Override
-	public void dispose () {
+	public void dispose() {
 		Board.dispose();
 	}
+
+	@Override
+	public void resize(int width, int height) {
+		Board.viewport.update(width, height);
+	}
+
+
 }

@@ -1,8 +1,10 @@
 package engine;
 
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.chessbot.ChessGame;
 import com.chessbot.FontLoader;
 
@@ -32,6 +34,13 @@ public class Board {
     private static final BitmapFont font =
             FontLoader.load("font/Lotuscoder-0WWrG.ttf", fontSize);
     private static final SpriteBatch batch = new SpriteBatch();
+    public static final OrthographicCamera cam = new OrthographicCamera();
+    public static final StretchViewport viewport =
+            new StretchViewport(
+                    (float) (ChessGame.SIZE * ChessGame.ASPECT_RATIO),
+                    ChessGame.SIZE,
+                    cam
+            );
     private int numBlack = 0;
     private int numWhite = 0;
     private Piece[] whitePieces;
@@ -54,7 +63,15 @@ public class Board {
     private final long[][][] zobristTable = initialiseZobristTable();
     private long zobrist = 0;
 
-    public Board() {}
+    public Board() {
+        viewport.apply();
+        cam.position.set(
+                (float) (ChessGame.SIZE * ChessGame.ASPECT_RATIO / 2),
+                ChessGame.SIZE / 2,
+                0
+        );
+        cam.update();
+    }
 
     // copy constructor, for doing lookahead
     public Board(Board board) {
@@ -90,6 +107,7 @@ public class Board {
     }
 
     public void render() {
+        batch.setProjectionMatrix(cam.combined);
         batch.begin();
         batch.draw(IMAGE, 0, 0);
         Move previousMove = getLastMove();
@@ -176,9 +194,9 @@ public class Board {
         }};
     }
 
-    public void processClick(int x_pixel, int y_pixel, boolean rightClick) {
-        int clickedRow = (int) (y_pixel / (double) ChessGame.SIZE * 8);
-        int clickedCol = (int) (x_pixel / (double) ChessGame.SIZE * 8);
+    public void processClick(double x_prop, double y_prop, boolean rightClick) {
+        int clickedRow = (int) (y_prop * 8);
+        int clickedCol = (int) (x_prop * 8);
         // invert axes
         if (flipBoard) {
             clickedRow = 7 - clickedRow;

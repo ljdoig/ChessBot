@@ -292,8 +292,10 @@ public abstract class Piece {
             Point location = square.getLocation(true);
             batch.draw(
                     image,
-                    location.x - image.getWidth() / 2,
-                    location.y - image.getHeight() / 2
+                    location.x - image.getWidth() * 3/4 / 2,
+                    location.y - image.getHeight() * 3/4 / 2,
+                    image.getWidth()* 3/4,
+                    image.getHeight()* 3/4
             );
         }
     }
