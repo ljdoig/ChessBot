@@ -1,6 +1,6 @@
 .idea/
 .gradle/
 build
-*.sh
+my_packr_package.sh
 
 .DS_Store

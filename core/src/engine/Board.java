@@ -20,10 +20,13 @@ public class Board {
     private static final Texture NTRL_SQR = new Texture("board/ntrl_sqr.png");
     public static final int SIZE = 8;
     public static boolean flipBoard = false;
-    private static final int fontSize = 20;
     private static final int fontSpacing = 16;
-    private static final BitmapFont font =
-            FontLoader.load("font/Lotuscoder-0WWrG.ttf", fontSize);
+    private static final BitmapFont smallFont =
+            FontLoader.load("font/Lotuscoder-0WWrG.ttf", 20
+            );
+    private static final BitmapFont largeFont =
+            FontLoader.load("font/Lotuscoder-0WWrG.ttf", 25
+            );
     private static final SpriteBatch batch = new SpriteBatch();
     private static final OrthographicCamera cam = new OrthographicCamera();
     public static final StretchViewport viewport =
@@ -133,27 +136,27 @@ public class Board {
 
     private void displayInfo() {
         int col = IMAGE.getWidth() + fontSpacing;
-        float rowOneY = ChessGame.SIZE - (fontSpacing + fontSize) * (0.75f);
-        float rowTwoY = ChessGame.SIZE - (fontSpacing + fontSize) * (1.75f);
-        float rowThreeY = ChessGame.SIZE - (fontSpacing + fontSize) * (2.75f);
-        font.draw(
+        float rowOneY = ChessGame.SIZE - (2.5f * fontSpacing) * (0.75f);
+        float rowTwoY = ChessGame.SIZE - (2.5f * fontSpacing) * (1.75f);
+        float rowThreeY = ChessGame.SIZE - (2.5f * fontSpacing) * (2.75f);
+        largeFont.draw(
                 batch, String.format("Turn:           %3d", fullmoveNumber),
                 col, rowOneY
         );
-        font.draw(
+        largeFont.draw(
                 batch, String.format("Half-move clock:%3d", halfmoveClock),
                 col, rowTwoY
         );
-        font.draw(
-                batch, String.format("Zobrist hash:     %s", zobristTracker.getVal()),
+        largeFont.draw(
+                batch, String.format("Zobrist hash: %s", zobristTracker.getVal()),
                 col, rowThreeY
         );
         ArrayList<String> other = otherInfo();
         for (int i = 0; i < other.size(); i++) {
-            font.draw(
+            smallFont.draw(
                     batch, other.get(i),
                     col,
-                    ChessGame.SIZE - ((fontSpacing + fontSize) * (i + 4.75f))
+                    ChessGame.SIZE - ((fontSpacing * 2) * (i + 5.75f))
             );
         }
     }
@@ -710,7 +713,8 @@ public class Board {
         BLUE_SQR.dispose();
         GREEN_SQR.dispose();
         batch.dispose();
-        font.dispose();
+        smallFont.dispose();
+        largeFont.dispose();
     }
 
     public boolean pieceArraysMatchBoard(Move move) {
