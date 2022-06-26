@@ -21,12 +21,16 @@ public class Scorer implements Runnable {
 
     public Move getBestMove() {
         assert scoringNode.isRoot;
+        if (originalNode.board.noValidMoveExists()) {
+            return null;
+        }
         performLookahead();
         if (originalNode.getBestMove() == null) {
             System.out.println("No successor was found ; using heuristic");
             Move bestMove = originalNode.board.getAllValidMoves().stream()
                     .max(Comparator.comparingInt(Move::heuristicScore))
-                    .get();
+                    .orElse(null);
+            assert bestMove != null;
             bestMove.setScore(bestMove.heuristicScore());
             originalNode.setBestMove(bestMove);
         }

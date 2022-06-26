@@ -276,6 +276,9 @@ public class Board {
             }
         } else if (!stalemated) {
             checkImplicitStalemate();
+            if (halfmoveClock >= 50) {
+                declareStalemate();
+            }
         }
     }
 
@@ -309,6 +312,9 @@ public class Board {
     }
 
     public boolean noValidMoveExists() {
+        if (halfmoveClock >= 50) {
+            return true;
+        }
         for (Piece piece : getPieces(nextTurn)) {
             if (!piece.hasBeenTaken() && piece.validMoveExists()) {
                 return false;
@@ -874,19 +880,10 @@ public class Board {
         }
         // if only your king is left, keep away from edges and opponent's king
         if (numPieces(side) == 1) {
-            evaluation += 3 * kingDistanceFromEdge(side);
+            evaluation += 3 * getKing(side).distanceFromEdge();
             evaluation += distanceBetweenKings();
         }
         return evaluation;
-    }
-
-    private int kingDistanceFromEdge(Side side) {
-        Square kingSquare = getKing(side).square();
-        int verticalEdgeDistance =
-                Math.min(kingSquare.row, 7 - kingSquare.row);
-        int horizontalEdgeDistance =
-                Math.min(kingSquare.col, 7 - kingSquare.col);
-        return Math.min(verticalEdgeDistance, horizontalEdgeDistance);
     }
 
     private int distanceBetweenKings() {

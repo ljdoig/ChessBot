@@ -145,6 +145,14 @@ public class King extends Piece {
         return false;
     }
 
+    public int distanceFromEdge() {
+        int verticalEdgeDistance =
+                Math.min(square().row, 7 - square().row);
+        int horizontalEdgeDistance =
+                Math.min(square().col, 7 - square().col);
+        return Math.min(verticalEdgeDistance, horizontalEdgeDistance);
+    }
+
     public boolean hasCastled() {
         return hasCastled;
     }
