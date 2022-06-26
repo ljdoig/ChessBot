@@ -13,22 +13,15 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 public class Board {
-    private static final Texture IMAGE = new Texture(
-            "board/chess_board_" + ChessGame.SIZE + ".png");
-    private static final Texture RED_SQUARE = new Texture(
-            "board/red_square_" + ChessGame.SIZE + ".png");
-    private static final Texture PREVMOVE_SQUARE = new Texture(
-            "board/prevmove_square_" + ChessGame.SIZE + ".png");
-    private static final Texture BLUE_SQUARE = new Texture(
-            "board/blue_square_" + ChessGame.SIZE + ".png");
-    private static final Texture PINK_SQUARE = new Texture(
-            "board/pink_square_" + ChessGame.SIZE + ".png");
-    private static final Texture GREEN_SQUARE = new Texture(
-            "board/green_square_" + ChessGame.SIZE + ".png");
+    private static final Texture IMAGE = new Texture("board/board.png");
+    private static final Texture PINK_SQR = new Texture("board/pink_sqr.png");
+    private static final Texture BLUE_SQR = new Texture("board/blue_sqr.png");
+    private static final Texture GREEN_SQR = new Texture("board/green_sqr.png");
+    private static final Texture NTRL_SQR = new Texture("board/ntrl_sqr.png");
     public static final int SIZE = 8;
     public static boolean flipBoard = false;
-    private static final int fontSize = ChessGame.SIZE / 40;
-    private static final int fontSpacing = ChessGame.SIZE / 50;
+    private static final int fontSize = 20;
+    private static final int fontSpacing = 16;
     private static final BitmapFont font =
             FontLoader.load("font/Lotuscoder-0WWrG.ttf", fontSize);
     private static final SpriteBatch batch = new SpriteBatch();
@@ -111,11 +104,11 @@ public class Board {
         if (previousMove != null) {
             Point from = previousMove.from.getLocation(false);
             Point to = previousMove.to.getLocation(false);
-            batch.draw(PREVMOVE_SQUARE, from.x, from.y);
-            batch.draw(PREVMOVE_SQUARE, to.x, to.y);
+            batch.draw(NTRL_SQR, from.x, from.y);
+            batch.draw(NTRL_SQR, to.x, to.y);
         }
         if (isInCheck(nextTurn)) {
-            Texture squareMarker = checkmated ? GREEN_SQUARE : BLUE_SQUARE;
+            Texture squareMarker = checkmated ? GREEN_SQR : BLUE_SQR;
             Point checkedLoc = getKing(nextTurn).square().getLocation(false);
             batch.draw(squareMarker, checkedLoc.x, checkedLoc.y);
             // in rare cases, multiple pieces can check; highlight them all
@@ -125,9 +118,8 @@ public class Board {
             }
         }
         if (focusedOn != null) {
-            highlightPossibleMoves();
             Point focusedOnLocation = focusedOn.square().getLocation(false);
-            batch.draw(RED_SQUARE, focusedOnLocation.x, focusedOnLocation.y);
+            batch.draw(PINK_SQR, focusedOnLocation.x, focusedOnLocation.y);
         }
         for (Piece piece : whitePieces) {
             piece.render(batch);
@@ -624,13 +616,6 @@ public class Board {
         return checkmated || stalemated;
     }
 
-    private void highlightPossibleMoves() {
-        for (Move move : possibleMoves) {
-            Point location = move.to.getLocation(false);
-            batch.draw(PINK_SQUARE, location.x, location.y);
-        }
-    }
-
     public Side getNextTurn() {
         return nextTurn;
     }
@@ -714,11 +699,10 @@ public class Board {
 
     public static void dispose() {
         IMAGE.dispose();
-        RED_SQUARE.dispose();
-        PREVMOVE_SQUARE.dispose();
-        BLUE_SQUARE.dispose();
-        PINK_SQUARE.dispose();
-        GREEN_SQUARE.dispose();
+        PINK_SQR.dispose();
+        NTRL_SQR.dispose();
+        BLUE_SQR.dispose();
+        GREEN_SQR.dispose();
         batch.dispose();
         font.dispose();
     }
