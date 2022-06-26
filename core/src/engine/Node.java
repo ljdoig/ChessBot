@@ -32,7 +32,7 @@ public class Node {
         }
 
         int alphaOrig = alpha;
-        TranspositionEntry entry = transpositionTable.get(board.getZobrist());
+        TranspositionEntry entry = transpositionTable.get(board.zobristTracker.getVal());
         if (entry != null && entry.depth >= depth) {
             if (entry.flag == 'E') {
                 // Exact match found
@@ -83,7 +83,7 @@ public class Node {
         } else {
             entry = new TranspositionEntry(nodeValue, depth, 'E');
         }
-        transpositionTable.put(board.getZobrist(), entry);
+        transpositionTable.put(board.zobristTracker.getVal(), entry);
 
         return nodeValue;
     }

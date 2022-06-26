@@ -25,8 +25,8 @@ public class Promotion extends Move {
         super.make();
         board.setContents(piece.square(), promoteTo);
         board.getPieces(side)[piece.arrayIndex] = promoteTo;
-        board.updateZobrist(to, piece);
-        board.updateZobrist(to, promoteTo);
+        board.zobristTracker.update(to, piece);
+        board.zobristTracker.update(to, promoteTo);
         assert board.pieceArraysMatchBoard(this);
     }
 
@@ -34,8 +34,8 @@ public class Promotion extends Move {
     public void undo() {
         board.getPieces(side)[piece.arrayIndex] = piece;
         super.undo();
-        board.updateZobrist(to, piece);
-        board.updateZobrist(to, promoteTo);
+        board.zobristTracker.update(to, piece);
+        board.zobristTracker.update(to, promoteTo);
         assert board.pieceArraysMatchBoard(this);
         assert board.getLastMove() == null || board.getLastMove().side == side.opponent();
     }

@@ -15,12 +15,14 @@ public class PartialMove extends Move{
 
     @Override
     public void register() {
-        super.updateZobrist();
+        board.zobristTracker.update(from, piece);
+        board.zobristTracker.update(to, piece);
     }
 
     @Override
     public void deregister() {
-        super.updateZobrist();
+        board.zobristTracker.update(from, piece);
+        board.zobristTracker.update(to, piece);
     }
 }
 

@@ -44,12 +44,8 @@ public class Square {
         char colChar = (char) (col + 97);
         return String.format("%c%d", colChar, 8 - row);
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Square square = (Square) o;
-        return row == square.row && col == square.col;
+    
+    public boolean equals(Square other) {
+        return row == other.row && col == other.col;
     }
 }

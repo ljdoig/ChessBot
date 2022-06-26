@@ -1,20 +1,15 @@
 package engine;
 
-import com.badlogic.gdx.graphics.Texture;
-
 import java.util.ArrayList;
 
 public class King extends Piece {
-    private static final Texture BLACK_IMAGE = new Texture("pieces/black/king.png");
-    private static final Texture WHITE_IMAGE = new Texture("pieces/white/king.png");
     private static final int value = 0;
-    private static final int pieceIndex = 5;
+    private static final int pieceIndex = 0;
     private boolean hasCastled = false;
 
     public King(Side side, int row, int col) {
         super(side, value, pieceIndex, row, col,
-               ((side == Side.WHITE) ? (row == 7) : (row == 0)) && col == 4,
-                (side == Side.WHITE) ? WHITE_IMAGE : BLACK_IMAGE);
+                (side == Side.WHITE ? row == 7 : row == 0) && col == 4);
     }
 
     // Copy constructor
@@ -158,8 +153,4 @@ public class King extends Piece {
         this.hasCastled = hasCastled;
     }
 
-    public static void dispose() {
-        BLACK_IMAGE.dispose();
-        WHITE_IMAGE.dispose();
-    }
 }

@@ -135,6 +135,7 @@ public class ChessGame extends ApplicationAdapter {
 			board.initialise(standardSetup);
 			return;
 		}
+		if (board.gameFinished()) return;
 		// computer's turn (or someone pressed A to automate their next move)
 		if (automaticSides.contains(board.getNextTurn())
 				|| Gdx.input.isKeyJustPressed(Input.Keys.A)) {

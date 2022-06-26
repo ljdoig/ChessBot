@@ -33,6 +33,7 @@ public class Move implements Comparable<Move> {
         this.halfmoveClockPrior = board.getHalfmoveClock();
     }
 
+
     // For En Passant, where 'taken' piece is not located at 'to'
     public Move(Piece piece, Square to, Piece taken) {
         this.board = piece.board;
@@ -109,33 +110,36 @@ public class Move implements Comparable<Move> {
         }
         assert side == board.getNextTurn();
         assert board.getLastMove() == null || board.getLastMove().side == side.opponent();
-        board.moveHistory.add(0, this);
+        board.moveHistory.add(this);
         board.updateNextTurn();
     }
 
     public void deregister() {
-        updateZobrist();
         if (side == Side.BLACK) {
             board.setFullmoveNumber(board.getFullmoveNumber() - 1);
         }
         board.setHalfmoveClock(halfmoveClockPrior);
         board.updateNextTurn();
-        assert board.moveHistory.get(0) == this : this;
-        board.moveHistory.remove(0);
+        assert board.moveHistory.get(board.moveHistory.size() - 1) == this : this;
+        board.moveHistory.remove(board.moveHistory.size() - 1);
+        updateZobrist();
     }
 
-    protected void updateZobrist() {
-        board.updateZobrist(from, piece);
-        board.updateZobrist(to, piece);
+    private void updateZobrist() {
+        board.zobristTracker.update(from, piece);
+        board.zobristTracker.update(to, piece);
         if (taken != null) {
-            board.updateZobrist(to, taken);
+            board.zobristTracker.update(to, taken);
         }
+        board.zobristTracker.updateTurn();
     }
 
+    // Absolute value
     public int rowDiff() {
         return from.rowDiff(to);
     }
 
+    // Signed value
     public int rowProgress() {
         if (side == Side.WHITE) {
             return from.row - to.row;
@@ -156,7 +160,6 @@ public class Move implements Comparable<Move> {
         for (String string : getAnticipatedSequence()) {
             System.out.println(string);
         }
-        System.out.println();
     }
 
     public ArrayList<String> getAnticipatedSequence() {
@@ -196,25 +199,6 @@ public class Move implements Comparable<Move> {
         } else {
             return "";
         }
-    }
-
-    public String longToString() {
-        return "Move{" +
-                "board=" + board +
-                ", piece=" + piece +
-                ", from=" + from +
-                ", to=" + to +
-                ", taken=" + taken +
-                ", side=" + side +
-                ", halfmoveClockPrior=" + halfmoveClockPrior +
-                ", pieceFirstMove=" + pieceFirstMove +
-                ", successor=" + successor +
-                ", score=" + score +
-                ", heuristic=" + heuristic +
-                ", scoreDepth=" + scoreDepth +
-                ", leafNodesSearchedToScore=" + leafNodesSearchedToScore +
-                ", timeToScoreSecs=" + timeToScoreSecs +
-                '}';
     }
 
     // For humans

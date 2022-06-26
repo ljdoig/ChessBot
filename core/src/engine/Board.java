@@ -10,7 +10,6 @@ import com.chessbot.FontLoader;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 public class Board {
@@ -26,15 +25,14 @@ public class Board {
             "board/pink_square_" + ChessGame.SIZE + ".png");
     private static final Texture GREEN_SQUARE = new Texture(
             "board/green_square_" + ChessGame.SIZE + ".png");
-    private static final int SIZE = 8;
-    private static final int NUM_PIECE_TYPES = 6;
+    public static final int SIZE = 8;
     public static boolean flipBoard = false;
     private static final int fontSize = ChessGame.SIZE / 40;
     private static final int fontSpacing = ChessGame.SIZE / 50;
     private static final BitmapFont font =
             FontLoader.load("font/Lotuscoder-0WWrG.ttf", fontSize);
     private static final SpriteBatch batch = new SpriteBatch();
-    public static final OrthographicCamera cam = new OrthographicCamera();
+    private static final OrthographicCamera cam = new OrthographicCamera();
     public static final StretchViewport viewport =
             new StretchViewport(
                     (float) (ChessGame.SIZE * ChessGame.ASPECT_RATIO),
@@ -60,14 +58,13 @@ public class Board {
     private int halfmoveClock = 0;
     private int fullmoveNumber = 1;
     public int getAllValidMoveCalls = 0;
-    private final long[][][] zobristTable = initialiseZobristTable();
-    private long zobrist = 0;
+    public final ZobristTracker zobristTracker = new ZobristTracker(this);
 
     public Board() {
         viewport.apply();
         cam.position.set(
                 (float) (ChessGame.SIZE * ChessGame.ASPECT_RATIO / 2),
-                ChessGame.SIZE / 2,
+                (float) ChessGame.SIZE / 2,
                 0
         );
         cam.update();
@@ -156,7 +153,7 @@ public class Board {
                 col, rowTwoY
         );
         font.draw(
-                batch, String.format("Zobrist hash:     %s", zobrist),
+                batch, String.format("Zobrist hash:     %s", zobristTracker.getVal()),
                 col, rowThreeY
         );
         ArrayList<String> other = otherInfo();
@@ -275,6 +272,7 @@ public class Board {
         focusedOn = null;
         clickedMove = null;
         checkEndOfGame();
+        System.out.format("Zobrist hash: %d\n\n", zobristTracker.getVal());
     }
 
     public void checkEndOfGame() {
@@ -616,7 +614,7 @@ public class Board {
 
     public Move getLastMove() {
         if (moveHistory.size() > 0) {
-            return moveHistory.get(0);
+            return moveHistory.get(moveHistory.size() - 1);
         } else {
             return null;
         }
@@ -639,26 +637,6 @@ public class Board {
 
     public void updateNextTurn() {
         nextTurn = nextTurn.opponent();
-    }
-
-    public long numPossiblePaths(int depth) {
-        long total = 0;
-        if (depth == 1) {
-            for (Piece piece : getPieces(nextTurn)) {
-                if (piece.hasBeenTaken()) continue;
-                total += piece.getValidMoves().size();
-            }
-        } else {
-            for (Piece piece : getPieces(nextTurn)) {
-                if (piece.hasBeenTaken()) continue;
-                for (Move move : piece.getValidMoves()) {
-                    move.make();
-                    total += numPossiblePaths(depth - 1);
-                    move.undo();
-                }
-            }
-        }
-        return total;
     }
 
     public void flip() {
@@ -741,12 +719,6 @@ public class Board {
         BLUE_SQUARE.dispose();
         PINK_SQUARE.dispose();
         GREEN_SQUARE.dispose();
-        Pawn.dispose();
-        Knight.dispose();
-        Bishop.dispose();
-        Rook.dispose();
-        Queen.dispose();
-        King.dispose();
         batch.dispose();
         font.dispose();
     }
@@ -809,7 +781,7 @@ public class Board {
             }
             System.out.println("Array white count: " + numWhite);
             System.out.println("Array black count: " + numBlack);
-            System.out.println("Move history: (most recent first)");
+            System.out.println("Move history: (most recent last)");
             for (Move previousMove : moveHistory) {
                 System.out.println(previousMove);
             }
@@ -911,7 +883,7 @@ public class Board {
                 if (moveHistory.size() < 20) {
                     evaluation += piece.progressFrom0thRank();
                 }
-                if (!piece.isUnmoved()) {
+                if (!piece.isUnmoved() && piece.progressFrom0thRank() > 0) {
                     evaluation += 3;
                 }
             }
@@ -983,28 +955,5 @@ public class Board {
         return pawnAttackedSquares;
     }
 
-
-    private long[][][] initialiseZobristTable() {
-        long[][][] table = new long[SIZE][SIZE][NUM_PIECE_TYPES * 2];
-        Random random = new Random(0);
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                for (int k = 0; k < NUM_PIECE_TYPES * 2; k++) {
-                    table[i][j][k] = random.nextLong();
-                }
-            }
-        }
-        return table;
-    }
-
-    public void updateZobrist(Square square, Piece piece) {
-        int pieceIndex = piece.pieceIndex +
-                (piece.side == Side.WHITE ? NUM_PIECE_TYPES : 0);
-        zobrist ^= zobristTable[square.col][square.row][pieceIndex];
-    }
-
-    public Long getZobrist() {
-        return zobrist;
-    }
 }
 

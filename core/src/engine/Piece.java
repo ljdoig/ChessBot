@@ -2,42 +2,44 @@ package engine;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.chessbot.ChessGame;
 
 import java.util.ArrayList;
 
 public abstract class Piece {
+    private static final TextureRegion[][] sprites = TextureRegion.split(
+            new Texture("Pieces.png"), 333, 334
+    );
+    private static final float RENDER_SCALE = 0.27f;
     public final Board board;
     public final Side side;
     public final int value;
     private Square square;
     private boolean unmoved;
-    private final Texture image;
     private boolean taken = false;
     public final int arrayIndex;
     public final int pieceIndex;
 
-    public Piece(Side side, int value, int pieceIndex, int row, int col, boolean unmoved, Texture image) {
+    public Piece(Side side, int value, int pieceIndex, int row, int col, boolean unmoved) {
         this.side = side;
         this.value = value;
         this.pieceIndex = pieceIndex;
         this.square = new Square(row, col);
         this.unmoved = unmoved;
-        this.image = image;
         this.board = ChessGame.getCurrentBoard();
         this.arrayIndex = board.getIndex(this);
         board.addPiece(this);
     }
 
     // For promoted pawns
-    public Piece(Piece promotedFrom, int value, int pieceIndex, Square to, Texture image) {
+    public Piece(Piece promotedFrom, int value, int pieceIndex, Square to) {
         this.side = promotedFrom.side;
         this.value = value;
         this.pieceIndex = pieceIndex;
         square = to;
         unmoved = false;
         this.arrayIndex = promotedFrom.arrayIndex;
-        this.image = image;
         this.board = promotedFrom.board;
     }
 
@@ -48,7 +50,6 @@ public abstract class Piece {
         this.pieceIndex = piece.pieceIndex;
         this.square = piece.square;
         this.unmoved = piece.unmoved;
-        this.image = piece.image;
         this.board = newBoard;
         this.taken = piece.taken;
         this.arrayIndex = piece.arrayIndex;
@@ -290,12 +291,13 @@ public abstract class Piece {
     protected void render(SpriteBatch batch) {
         if (!taken) {
             Point location = square.getLocation(true);
+            TextureRegion image = sprites[side==Side.WHITE ? 0 : 1][pieceIndex];
             batch.draw(
-                    image,
-                    location.x - image.getWidth() * 3/4 / 2,
-                    location.y - image.getHeight() * 3/4 / 2,
-                    image.getWidth()* 3/4,
-                    image.getHeight()* 3/4
+                    sprites[side==Side.WHITE ? 0 : 1][pieceIndex],
+                    location.x - image.getRegionWidth() * RENDER_SCALE / 2,
+                    location.y - image.getRegionHeight() * RENDER_SCALE / 2,
+                    image.getRegionWidth() * RENDER_SCALE,
+                    image.getRegionHeight() * RENDER_SCALE
             );
         }
     }
@@ -343,17 +345,6 @@ public abstract class Piece {
     @Override
     public String toString() {
         return side + " " + String.format("%-6s", getClass().getSimpleName());
-    }
-
-    public String longToString() {
-        return "Piece{" +
-                "side=" + side +
-                ", value=" + value +
-                ", square=" + square +
-                ", unmoved=" + unmoved +
-                ", taken=" + taken +
-                ", index=" + arrayIndex +
-                '}';
     }
 
     public Square square() {

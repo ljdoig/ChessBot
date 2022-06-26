@@ -1,14 +1,10 @@
 package engine;
 
-import com.badlogic.gdx.graphics.Texture;
-
 import java.util.ArrayList;
 
 public class Knight extends Piece {
-    private static final Texture BLACK_IMAGE = new Texture("pieces/black/knight.png");
-    private static final Texture WHITE_IMAGE = new Texture("pieces/white/knight.png");
     private static final int value = 3;
-    private static final int pieceIndex = 1;
+    private static final int pieceIndex = 3;
     // these arrays show the possible move directions at any point
     private static final int[] up    =
             new int[]{2,  2, 1,  1, -1, -1, -2, -2};
@@ -16,24 +12,17 @@ public class Knight extends Piece {
             new int[]{1, -1, 2, -2,  2, -2,  1, -1};
 
     public Knight(Side side, int row, int col, boolean unmoved) {
-        super(side, value, pieceIndex, row, col, unmoved,
-                (side == Side.WHITE) ? WHITE_IMAGE : BLACK_IMAGE);
+        super(side, value, pieceIndex, row, col, unmoved);
     }
 
     // For promotion
     public Knight(Piece piece, Square to) {
-        super(piece, value, pieceIndex, to,
-                (piece.side == Side.WHITE) ? WHITE_IMAGE : BLACK_IMAGE);
+        super(piece, value, pieceIndex, to);
     }
 
     // Copy constructor
     public Knight(Knight knight, Board newBoard) {
         super(knight, newBoard);
-    }
-
-    public static void dispose() {
-        BLACK_IMAGE.dispose();
-        WHITE_IMAGE.dispose();
     }
 
     @Override
