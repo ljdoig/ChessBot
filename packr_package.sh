@@ -20,7 +20,7 @@ java -jar $PACKR_JAR \
 	--classpath desktop/build/libs/desktop-1.0.jar \
 	--mainclass com.chessbot.DesktopLauncher \
 	--vmargs XstartOnFirstThread \
-	--icon assets/board/board.icns \
+	--icon assets/logo.icns \
 	--output build/mac/ChessBot.app
 
 # package into Windows .exe
@@ -31,5 +31,5 @@ java -jar $PACKR_JAR \
 	--executable ChessBot \
 	--classpath desktop/build/libs/desktop-1.0.jar \
 	--mainclass com.chessbot.DesktopLauncher \
-	--icon assets/board/board.icns \
+	--icon assets/logo.icns \
 	--output build/windows/ChessBot

@@ -1,6 +1,6 @@
 import PIL.Image as pim
 
-def generate_square(rgb, name, square_width, margin=1):
+def generate_square(rgb, name, square_width, margin=2):
     new = pim.new("RGB", (square_width, square_width))
     for i in range(square_width):
         for j in range(square_width):
