@@ -1,40 +1,25 @@
 package engine;
 
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.chessbot.ChessGame;
-import com.chessbot.FontLoader;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
 public class Board {
+    private static final String standardSetup =
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     private static final Texture IMAGE = new Texture("board/board.png");
     private static final Texture PINK_SQR = new Texture("board/pink_sqr.png");
     private static final Texture BLUE_SQR = new Texture("board/blue_sqr.png");
     private static final Texture GREEN_SQR = new Texture("board/green_sqr.png");
     private static final Texture NTRL_SQR = new Texture("board/ntrl_sqr.png");
     public static final int SIZE = 8;
-    public static boolean flipBoard = false;
+    private static boolean flipBoard = false;
     private static final int fontSpacing = 16;
-    private static final BitmapFont smallFont =
-            FontLoader.load("font/Lotuscoder-0WWrG.ttf", 20
-            );
-    private static final BitmapFont largeFont =
-            FontLoader.load("font/Lotuscoder-0WWrG.ttf", 25
-            );
-    private static final SpriteBatch batch = new SpriteBatch();
-    private static final OrthographicCamera cam = new OrthographicCamera();
-    public static final StretchViewport viewport =
-            new StretchViewport(
-                    (float) (ChessGame.SIZE * ChessGame.ASPECT_RATIO),
-                    ChessGame.SIZE,
-                    cam
-            );
     private int numBlack = 0;
     private int numWhite = 0;
     private Piece[] whitePieces;
@@ -57,13 +42,11 @@ public class Board {
     public final ZobristTracker zobristTracker = new ZobristTracker(this);
 
     public Board() {
-        viewport.apply();
-        cam.position.set(
-                (float) (ChessGame.SIZE * ChessGame.ASPECT_RATIO / 2),
-                (float) ChessGame.SIZE / 2,
-                0
-        );
-        cam.update();
+        this(standardSetup);
+    }
+
+    public Board(String fen) {
+        initialise(fen);
     }
 
     // copy constructor, for doing lookahead
@@ -99,8 +82,7 @@ public class Board {
         }
     }
 
-    public void render() {
-        batch.setProjectionMatrix(cam.combined);
+    public void render(SpriteBatch batch) {
         batch.begin();
         batch.draw(IMAGE, 0, 0);
         Move previousMove = getLastMove();
@@ -130,15 +112,16 @@ public class Board {
         for (Piece piece : blackPieces) {
             piece.render(batch);
         }
-        displayInfo();
         batch.end();
     }
 
-    private void displayInfo() {
+    public void displayInfo(SpriteBatch batch, BitmapFont largeFont,
+                             BitmapFont smallFont) {
+        batch.begin();
         int col = IMAGE.getWidth() + fontSpacing;
-        float rowOneY = ChessGame.SIZE - (2.5f * fontSpacing) * (0.75f);
-        float rowTwoY = ChessGame.SIZE - (2.5f * fontSpacing) * (1.75f);
-        float rowThreeY = ChessGame.SIZE - (2.5f * fontSpacing) * (2.75f);
+        float rowOneY = ChessGame.HEIGHT - (2.5f * fontSpacing) * (0.75f);
+        float rowTwoY = ChessGame.HEIGHT - (2.5f * fontSpacing) * (1.75f);
+        float rowThreeY = ChessGame.HEIGHT - (2.5f * fontSpacing) * (2.75f);
         largeFont.draw(
                 batch, String.format("Turn:           %3d", fullmoveNumber),
                 col, rowOneY
@@ -156,9 +139,10 @@ public class Board {
             smallFont.draw(
                     batch, other.get(i),
                     col,
-                    ChessGame.SIZE - ((fontSpacing * 2) * (i + 5.75f))
+                    ChessGame.HEIGHT - ((fontSpacing * 2) * (i + 5.75f))
             );
         }
+        batch.end();
     }
 
     public ArrayList<String> otherInfo() {
@@ -439,7 +423,7 @@ public class Board {
         return board.toString();
     }
 
-    public void initialise(String fen) {
+    private void initialise(String fen) {
         String[] fenComponents = fen.split(" ");
         String[] boardRows = fenComponents[0].split("/");
         int charInRow;
@@ -461,11 +445,11 @@ public class Board {
                         case "k":
                             King newKing;
                             if (pieceSide == Side.WHITE) {
-                                newKing = new King(Side.WHITE, row, col);
+                                newKing = new King(Side.WHITE, row, col, this);
                                 whitePieces.add(newKing);
                                 setWhiteKing(newKing);
                             } else {
-                                newKing = new King(Side.BLACK, row, col);
+                                newKing = new King(Side.BLACK, row, col, this);
                                 blackPieces.add(newKing);
                                 setBlackKing(newKing);
                             }
@@ -473,48 +457,48 @@ public class Board {
                         case "q":
                             if (pieceSide == Side.WHITE) {
                                 whitePieces.add(new Queen(
-                                        Side.WHITE, row, col, true
+                                        Side.WHITE, row, col, true, this
                                 ));
                             } else {
                                 blackPieces.add(new Queen(
-                                        Side.BLACK, row, col, true
+                                        Side.BLACK, row, col, true, this
                                 ));
                             }
                             break;
                         case "r":
                             if (pieceSide == Side.WHITE) {
-                                whitePieces.add(new Rook(Side.WHITE, row, col));
+                                whitePieces.add(new Rook(Side.WHITE, row, col, this));
                             } else {
-                                blackPieces.add(new Rook(Side.BLACK, row, col));
+                                blackPieces.add(new Rook(Side.BLACK, row, col, this));
                             }
                             break;
                         case "b":
                             if (pieceSide == Side.WHITE) {
                                 whitePieces.add(new Bishop(
-                                        Side.WHITE, row, col, true
+                                        Side.WHITE, row, col, true, this
                                 ));
                             } else {
                                 blackPieces.add(new Bishop(
-                                        Side.BLACK, row, col, true
+                                        Side.BLACK, row, col, true, this
                                 ));
                             }
                             break;
                         case "n":
                             if (pieceSide == Side.WHITE) {
                                 whitePieces.add(new Knight(
-                                        Side.WHITE, row, col, true
+                                        Side.WHITE, row, col, true, this
                                 ));
                             } else {
                                 blackPieces.add(new Knight(
-                                        Side.BLACK, row, col, true
+                                        Side.BLACK, row, col, true, this
                                 ));
                             }
                             break;
                         case "p":
                             if (pieceSide == Side.WHITE) {
-                                whitePieces.add(new Pawn(Side.WHITE, row, col));
+                                whitePieces.add(new Pawn(Side.WHITE, row, col, this));
                             } else {
-                                blackPieces.add(new Pawn(Side.BLACK, row, col));
+                                blackPieces.add(new Pawn(Side.BLACK, row, col, this));
                             }
                             break;
                         default:
@@ -712,9 +696,6 @@ public class Board {
         NTRL_SQR.dispose();
         BLUE_SQR.dispose();
         GREEN_SQR.dispose();
-        batch.dispose();
-        smallFont.dispose();
-        largeFont.dispose();
     }
 
     public boolean pieceArraysMatchBoard(Move move) {
@@ -940,5 +921,8 @@ public class Board {
         return pawnAttackedSquares;
     }
 
+    public static boolean isFlipped() {
+        return flipBoard;
+    }
 }
 

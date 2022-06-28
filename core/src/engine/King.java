@@ -7,9 +7,10 @@ public class King extends Piece {
     private static final int pieceIndex = 0;
     private boolean hasCastled = false;
 
-    public King(Side side, int row, int col) {
+    public King(Side side, int row, int col, Board board) {
         super(side, value, pieceIndex, row, col,
-                (side == Side.WHITE ? row == 7 : row == 0) && col == 4);
+                (side == Side.WHITE ? row == 7 : row == 0) && col == 4,
+                board);
     }
 
     // Copy constructor

@@ -6,9 +6,10 @@ public class Rook extends Piece {
     private static final int value = 5;
     private static final int pieceIndex = 4;
 
-    public Rook(Side side, int row, int col) {
+    public Rook(Side side, int row, int col, Board board) {
         super(side, value, pieceIndex, row, col,
-                side == Side.WHITE ? row == 7 : row == 0 && (col == 0 || col == 7));
+                side == Side.WHITE ? row == 7 : row == 0 && (col == 0 || col == 7),
+                board);
     }
 
     // For promotion

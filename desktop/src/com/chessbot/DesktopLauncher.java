@@ -1,5 +1,6 @@
 package com.chessbot;
 
+import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 
@@ -9,10 +10,10 @@ public class DesktopLauncher {
 		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
 		config.setForegroundFPS(30);
 		config.setWindowedMode(
-				(int) (ChessGame.SIZE * ChessGame.ASPECT_RATIO),
-				ChessGame.SIZE
+				ChessGame.WIDTH,
+				ChessGame.HEIGHT
 		);
 		config.setTitle("ChessBot");
-		new Lwjgl3Application(new ChessGame(), config);
+		new Lwjgl3Application((ApplicationListener) new ChessGame(), config);
 	}
 }

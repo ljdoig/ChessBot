@@ -3,7 +3,6 @@ package engine;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.chessbot.ChessGame;
 
 import java.util.ArrayList;
 
@@ -21,13 +20,14 @@ public abstract class Piece {
     public final int arrayIndex;
     public final int pieceIndex;
 
-    public Piece(Side side, int value, int pieceIndex, int row, int col, boolean unmoved) {
+    public Piece(Side side, int value, int pieceIndex, int row, int col,
+                 boolean unmoved, Board board) {
         this.side = side;
         this.value = value;
         this.pieceIndex = pieceIndex;
         this.square = new Square(row, col);
         this.unmoved = unmoved;
-        this.board = ChessGame.getCurrentBoard();
+        this.board = board;
         this.arrayIndex = board.getIndex(this);
         board.addPiece(this);
     }

@@ -6,8 +6,8 @@ public class Bishop extends Piece {
     private static final int value = 3;
     private static final int pieceIndex = 2;
 
-    public Bishop(Side side, int row, int col, boolean unmoved) {
-        super(side, value, pieceIndex, row, col, unmoved);
+    public Bishop(Side side, int row, int col, boolean unmoved, Board board) {
+        super(side, value, pieceIndex, row, col, unmoved, board);
     }
 
     // For promotion

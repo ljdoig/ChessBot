@@ -16,12 +16,12 @@ public class Square {
 
     public Point getLocation(boolean centred) {
         Square renderAt;
-        if (Board.flipBoard) {
+        if (Board.isFlipped()) {
             renderAt = new Square(row, 7 - col);
         } else {
             renderAt = new Square(7 - row, col);
         }
-        float squareWidth = (float) (ChessGame.SIZE / 8.0);
+        float squareWidth = ChessGame.HEIGHT / 8.0f;
         float x = squareWidth * renderAt.col;
         float y = squareWidth * renderAt.row;
         if (centred) {

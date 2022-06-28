@@ -11,8 +11,8 @@ public class Knight extends Piece {
     private static final int[] right =
             new int[]{1, -1, 2, -2,  2, -2,  1, -1};
 
-    public Knight(Side side, int row, int col, boolean unmoved) {
-        super(side, value, pieceIndex, row, col, unmoved);
+    public Knight(Side side, int row, int col, boolean unmoved, Board board) {
+        super(side, value, pieceIndex, row, col, unmoved, board);
     }
 
     // For promotion

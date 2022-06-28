@@ -6,8 +6,8 @@ public class Queen extends Piece {
     public static final int value = 9;
     private static final int pieceIndex = 1;
 
-    public Queen(Side side, int row, int col, boolean unmoved) {
-        super(side, value, pieceIndex, row, col, unmoved);
+    public Queen(Side side, int row, int col, boolean unmoved, Board board) {
+        super(side, value, pieceIndex, row, col, unmoved, board);
     }
 
     // For promotion

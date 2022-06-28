@@ -6,8 +6,9 @@ public class Pawn extends Piece {
     private static final int value = 1;
     private static final int pieceIndex = 5;
 
-    public Pawn(Side side, int row, int col) {
-        super(side, value, pieceIndex, row, col, (side == Side.WHITE) ? (row == 6) : (row == 1));
+    public Pawn(Side side, int row, int col, Board board) {
+        super(side, value, pieceIndex, row, col,
+                side == Side.WHITE ? row == 6 : row == 1, board);
     }
 
     // Copy constructor
