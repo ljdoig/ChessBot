@@ -9,11 +9,8 @@ public class DesktopLauncher {
 	public static void main (String[] arg) {
 		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
 		config.setForegroundFPS(30);
-		config.setWindowedMode(
-				ChessGame.WIDTH,
-				ChessGame.HEIGHT
-		);
+		config.setWindowedMode(ChessGame.WIDTH,ChessGame.HEIGHT);
 		config.setTitle("ChessBot");
-		new Lwjgl3Application((ApplicationListener) new ChessGame(), config);
+		new Lwjgl3Application(new ChessGame(), config);
 	}
 }

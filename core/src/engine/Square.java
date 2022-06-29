@@ -8,15 +8,15 @@ public class Square {
     public final byte col;
 
     public Square(int row, int col) {
-        assert 0 <= row && row <= 7;
-        assert 0 <= col && col <= 7;
+        assert 0 <= row && row < 8;
+        assert 0 <= col && col < 8;
         this.row = (byte) row;
         this.col = (byte) col;
     }
 
-    public Point getLocation(boolean centred) {
+    public Point getLocation(boolean centred, boolean flipped) {
         Square renderAt;
-        if (Board.isFlipped()) {
+        if (flipped) {
             renderAt = new Square(row, 7 - col);
         } else {
             renderAt = new Square(7 - row, col);

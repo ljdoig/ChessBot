@@ -5,7 +5,7 @@ import java.util.PriorityQueue;
 
 // A node in the minimax tree representing a state of the board
 public class Node {
-    private static int leafNodes = 0;
+    private static EvaluationTracker evaluationTracker;
 
     public final boolean isRoot;
     public final Board board;
@@ -51,8 +51,9 @@ public class Node {
         }
 
         if (depth == 0 || board.noValidMoveExists()) {
+            evaluationTracker.incrementLeafNodes();
             int evaluation = quiesce(alpha, beta);
-            updatePrediction(null, evaluation, depth);
+            updatePrediction(null, evaluation);
             return evaluation;
         }
         PriorityQueue<Move> pq = new PriorityQueue<>(board.getAllValidMoves());
@@ -69,7 +70,7 @@ public class Node {
             subsequentMove.undo();
             if (nodeValue > alpha) {
                 alpha = nodeValue;
-                updatePrediction(subsequentMove, nodeValue, depth);
+                updatePrediction(subsequentMove, nodeValue);
             }
             if (alpha >= beta) {
                 break;
@@ -89,7 +90,7 @@ public class Node {
     }
 
     private int quiesce(int alpha, int beta) {
-        leafNodes++;
+        evaluationTracker.incrementEvaluations();
         int baseline = board.evaluate();
         if (baseline >= beta)
             return beta;
@@ -110,11 +111,10 @@ public class Node {
         return alpha;
     }
 
-    private void updatePrediction(Move subsequentMove, int nodeValue, int depth) {
+    private void updatePrediction(Move subsequentMove, int nodeValue) {
         if (isRoot) {
             bestMove = subsequentMove;
             bestMove.setScore(nodeValue);
-            bestMove.setScoreDepth(depth);
         }
         if (precedingMove != null) {
             precedingMove.setSuccessor(subsequentMove);
@@ -130,20 +130,13 @@ public class Node {
         this.bestMove = bestMove;
     }
 
-    public static int getLeafNodes() {
-        return leafNodes;
-    }
-
-    public static void resetStartNodeEvaluationCount() {
-        leafNodes = 0;
-    }
-
-    public static int getTranspositions() {
-        return transpositionTable.size();
-    }
-
-    public static void resetTranspositionTable() {
+    public static void resetEvaluationTracker(int depth) {
+        evaluationTracker = new EvaluationTracker(depth);
         transpositionTable.clear();
     }
 
+    public static EvaluationTracker getEvaluationTracker() {
+        evaluationTracker.setTranspositions(transpositionTable.size());
+        return evaluationTracker;
+    }
 }

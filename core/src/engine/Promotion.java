@@ -27,7 +27,6 @@ public class Promotion extends Move {
         board.getPieces(side)[piece.arrayIndex] = promoteTo;
         board.zobristTracker.update(to, piece);
         board.zobristTracker.update(to, promoteTo);
-        assert board.pieceArraysMatchBoard(this);
     }
 
     @Override
@@ -36,7 +35,6 @@ public class Promotion extends Move {
         super.undo();
         board.zobristTracker.update(to, piece);
         board.zobristTracker.update(to, promoteTo);
-        assert board.pieceArraysMatchBoard(this);
         assert board.getLastMove() == null || board.getLastMove().side == side.opponent();
     }
 

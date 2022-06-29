@@ -288,9 +288,9 @@ public abstract class Piece {
         return false;
     }
 
-    protected void render(SpriteBatch batch) {
+    protected void render(SpriteBatch batch, boolean flipped) {
         if (!taken) {
-            Point location = square.getLocation(true);
+            Point location = square.getLocation(true, flipped);
             TextureRegion image = sprites[side==Side.WHITE ? 0 : 1][pieceIndex];
             batch.draw(
                     sprites[side==Side.WHITE ? 0 : 1][pieceIndex],

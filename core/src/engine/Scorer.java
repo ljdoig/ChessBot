@@ -53,7 +53,7 @@ public class Scorer implements Runnable {
         }
         if (originalNode.getBestMove() != null) {
             System.out.format("Depth reached: %d\n",
-                    originalNode.getBestMove().getScoreDepth()
+                    originalNode.getBestMove().getEvaluationTracker().getDepth()
             );
             System.out.format("Best move: %s\n", originalNode.getBestMove());
         } else {
@@ -64,12 +64,14 @@ public class Scorer implements Runnable {
     private void updateStats() {
         long endTime = System.currentTimeMillis();
         double timeToScoreLastMoveSecs = (endTime - startTime) / 1000.0;
-        originalNode.getBestMove().setTimeToScoreSecs(timeToScoreLastMoveSecs);
-        totalComputeMoveDepth += originalNode.getBestMove().getScoreDepth();
+        EvaluationTracker ET = originalNode.getBestMove().getEvaluationTracker();
+        ET.setTimeTaken(timeToScoreLastMoveSecs);
+        totalComputeMoveDepth += ET.getDepth();
         numComputedMoves ++;
         System.out.format("Scored move %d: %.3fs\n",
                 numComputedMoves,
-                timeToScoreLastMoveSecs);
+                timeToScoreLastMoveSecs
+        );
         if (originalNode.board.moveHistory.size() % 10 == 9) {
             System.out.format("Average move compute depth: %.2f\n",
                     totalComputeMoveDepth / (double) numComputedMoves);
@@ -85,8 +87,7 @@ public class Scorer implements Runnable {
             System.out.format("Depth: %d\n", depth);
 
             moveStartTime = System.currentTimeMillis();
-            Node.resetStartNodeEvaluationCount();
-            Node.resetTranspositionTable();
+            Node.resetEvaluationTracker(depth);
             negamax = scoringNode.negamax(
                     depth,
                     -Integer.MAX_VALUE,
@@ -98,16 +99,16 @@ public class Scorer implements Runnable {
             // copy bestMove but set board to the actual game board
             bestMove = scoringNode.getBestMove().makeCopy(originalNode.board);
             assert negamax == bestMove.getScore();
-            bestMove.setLeafNodesSearchedToScore(Node.getLeafNodes());
+            bestMove.setEvaluationTracker(Node.getEvaluationTracker());
             originalNode.setBestMove(bestMove);
 
             System.out.format("\tMove time: %.3f, Total time: %.3f\n",
                     (System.currentTimeMillis() - moveStartTime)/1000.0,
                     (System.currentTimeMillis() - startTime)/1000.0);
             System.out.format("\tLeaf-nodes searched: %d\n",
-                    bestMove.getLeafNodesSearchedToScore());
+                    bestMove.getEvaluationTracker().getLeafNodes());
             System.out.format("\tTranspositions     : %d\n",
-                    Node.getTranspositions());
+                    bestMove.getEvaluationTracker().getTranspositions());
             depth++;
         }
     }

@@ -1,6 +1,8 @@
 import PIL.Image as pim
 
-def generate_square(rgb, name, square_width, margin=2):
+def generate_square(rgb, name, square_width, margin=0, lighten=False):
+    if lighten:
+        rgb = tuple(min(255, int(1.1 * i)) for i in rgb)
     new = pim.new("RGB", (square_width, square_width))
     for i in range(square_width):
         for j in range(square_width):
@@ -9,7 +11,10 @@ def generate_square(rgb, name, square_width, margin=2):
                 margin <= j < square_width - margin
                 ):
                 new.putpixel((i, j), rgb)
-    new.save(f"../board/{name}_sqr.png")
+    if lighten:
+        new.save(f"../board/{name}_sqr+.png")
+    else:
+        new.save(f"../board/{name}_sqr.png")
 
 if __name__ == "__main__":
     colours = [
@@ -20,3 +25,4 @@ if __name__ == "__main__":
     ] 
     for rgb, name in colours:
         generate_square(rgb, name, 800 // 8)
+        generate_square(rgb, name, 800 // 8, lighten=True)

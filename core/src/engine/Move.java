@@ -18,9 +18,7 @@ public class Move implements Comparable<Move> {
     private Move successor;
     private Integer score;
     private Integer heuristic;
-    private int scoreDepth;
-    private int leafNodesSearchedToScore;
-    private double timeToScoreSecs;
+    private EvaluationTracker evaluationTracker;
 
     public Move(Piece piece, Square to) {
         this.board = piece.board;
@@ -61,9 +59,7 @@ public class Move implements Comparable<Move> {
         this.halfmoveClockPrior = move.halfmoveClockPrior;
         this.successor = move.successor;
         this.score = move.score;
-        this.leafNodesSearchedToScore = move.leafNodesSearchedToScore;
-        this.timeToScoreSecs = move.timeToScoreSecs;
-        this.scoreDepth = move.scoreDepth;
+        this.evaluationTracker = move.evaluationTracker;
     }
 
     public Move makeCopy(Board newBoard) {
@@ -81,7 +77,6 @@ public class Move implements Comparable<Move> {
         board.setContents(from, null);
         board.setContents(to, piece);
         register();
-        assert board.pieceArraysMatchBoard(this);
     }
 
     public void undo() {
@@ -95,7 +90,6 @@ public class Move implements Comparable<Move> {
         piece.setSquare(from);
         piece.setUnmoved(pieceFirstMove);
         deregister();
-        assert board.pieceArraysMatchBoard(this);
     }
 
     public void register() {
@@ -233,14 +227,6 @@ public class Move implements Comparable<Move> {
         }
     }
 
-    public int getScoreDepth() {
-        return scoreDepth;
-    }
-
-    public void setScoreDepth(int scoreDepth) {
-        this.scoreDepth = scoreDepth;
-    }
-
     public Integer getScore() {
         return score;
     }
@@ -249,20 +235,12 @@ public class Move implements Comparable<Move> {
         this.score = score;
     }
 
-    public int getLeafNodesSearchedToScore() {
-        return leafNodesSearchedToScore;
+    public EvaluationTracker getEvaluationTracker() {
+        return evaluationTracker;
     }
 
-    public void setLeafNodesSearchedToScore(int leafNodesSearchedToScore) {
-        this.leafNodesSearchedToScore = leafNodesSearchedToScore;
-    }
-
-    public double getTimeToScoreSecs() {
-        return timeToScoreSecs;
-    }
-
-    public void setTimeToScoreSecs(double timeToScoreSecs) {
-        this.timeToScoreSecs = timeToScoreSecs;
+    public void setEvaluationTracker(EvaluationTracker evaluationTracker) {
+        this.evaluationTracker = evaluationTracker;
     }
 
     public ArrayList<String> analysis() {
@@ -273,9 +251,9 @@ public class Move implements Comparable<Move> {
         if (successor != null) {
             score = -successor.score;
             analysis.add(String.format("Test move: (%d leaf-nodes, %.2fs, depth: %d)",
-                    successor.leafNodesSearchedToScore,
-                    successor.timeToScoreSecs,
-                    successor.scoreDepth));
+                    successor.getEvaluationTracker().getLeafNodes(),
+                    successor.getEvaluationTracker().getTimeTaken(),
+                    successor.getEvaluationTracker().getDepth()));
         } else {
             score = -board.evaluate();
             analysis.add("Test move: (leaf-node)");

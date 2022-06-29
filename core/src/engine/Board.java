@@ -1,55 +1,27 @@
 package engine;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.chessbot.ChessGame;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
 public class Board {
-    private static final String standardSetup =
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    private static final Texture IMAGE = new Texture("board/board.png");
-    private static final Texture PINK_SQR = new Texture("board/pink_sqr.png");
-    private static final Texture BLUE_SQR = new Texture("board/blue_sqr.png");
-    private static final Texture GREEN_SQR = new Texture("board/green_sqr.png");
-    private static final Texture NTRL_SQR = new Texture("board/ntrl_sqr.png");
     public static final int SIZE = 8;
-    private static boolean flipBoard = false;
-    private static final int fontSpacing = 16;
-    private int numBlack = 0;
-    private int numWhite = 0;
-    private Piece[] whitePieces;
-    private Piece[] blackPieces;
+    protected int numBlack = 0;
+    protected int numWhite = 0;
+    protected Piece[] whitePieces;
+    protected Piece[] blackPieces;
     private final Piece[][] contents = new Piece[SIZE][SIZE];
     public final ArrayList<Move> moveHistory = new ArrayList<>();
     private King whiteKing;
     private King blackKing;
-    private Side nextTurn = Side.WHITE;
-    private Piece focusedOn;
-    private ArrayList<Move> possibleMoves;
-    private Move clickedMove;
-    private ArrayList<String> clickedMoveAnalysis = new ArrayList<>();
-    private boolean stalemated = false;
-    private boolean checkmated = false;
-    private String endOfGameMessage;
-    private int halfmoveClock = 0;
-    private int fullmoveNumber = 1;
-    public int getAllValidMoveCalls = 0;
+    protected Side nextTurn = Side.WHITE;
+    protected int halfmoveClock = 0;
+    protected int fullmoveNumber = 1;
     public final ZobristTracker zobristTracker = new ZobristTracker(this);
 
-    public Board() {
-        this(standardSetup);
-    }
+    public Board() {}
 
-    public Board(String fen) {
-        initialise(fen);
-    }
-
-    // copy constructor, for doing lookahead
+    // copy constructor: duplicates true state before lookahead
     public Board(Board board) {
         whitePieces = new Piece[board.whitePieces.length];
         blackPieces = new Piece[board.blackPieces.length];
@@ -62,10 +34,6 @@ public class Board {
         whiteKing = (King) contentsAt(board.whiteKing.square());
         blackKing = (King) contentsAt(board.blackKing.square());
         nextTurn = board.nextTurn;
-        focusedOn = board.focusedOn;
-        possibleMoves = board.possibleMoves;
-        assert !board.stalemated;
-        assert !board.checkmated;
         halfmoveClock = board.halfmoveClock;
         fullmoveNumber = board.fullmoveNumber;
     }
@@ -82,147 +50,7 @@ public class Board {
         }
     }
 
-    public void render(SpriteBatch batch) {
-        batch.begin();
-        batch.draw(IMAGE, 0, 0);
-        Move previousMove = getLastMove();
-        if (previousMove != null) {
-            Point from = previousMove.from.getLocation(false);
-            Point to = previousMove.to.getLocation(false);
-            batch.draw(NTRL_SQR, from.x, from.y);
-            batch.draw(NTRL_SQR, to.x, to.y);
-        }
-        if (isInCheck(nextTurn)) {
-            Texture squareMarker = checkmated ? GREEN_SQR : BLUE_SQR;
-            Point checkedLoc = getKing(nextTurn).square().getLocation(false);
-            batch.draw(squareMarker, checkedLoc.x, checkedLoc.y);
-            // in rare cases, multiple pieces can check; highlight them all
-            for (Piece checkingPiece : checkingPieces(nextTurn)) {
-                Point checkedByLoc = checkingPiece.square().getLocation(false);
-                batch.draw(squareMarker, checkedByLoc.x, checkedByLoc.y);
-            }
-        }
-        if (focusedOn != null) {
-            Point focusedOnLocation = focusedOn.square().getLocation(false);
-            batch.draw(PINK_SQR, focusedOnLocation.x, focusedOnLocation.y);
-        }
-        for (Piece piece : whitePieces) {
-            piece.render(batch);
-        }
-        for (Piece piece : blackPieces) {
-            piece.render(batch);
-        }
-        batch.end();
-    }
-
-    public void displayInfo(SpriteBatch batch, BitmapFont largeFont,
-                             BitmapFont smallFont) {
-        batch.begin();
-        int col = IMAGE.getWidth() + fontSpacing;
-        float rowOneY = ChessGame.HEIGHT - (2.5f * fontSpacing) * (0.75f);
-        float rowTwoY = ChessGame.HEIGHT - (2.5f * fontSpacing) * (1.75f);
-        float rowThreeY = ChessGame.HEIGHT - (2.5f * fontSpacing) * (2.75f);
-        largeFont.draw(
-                batch, String.format("Turn:           %3d", fullmoveNumber),
-                col, rowOneY
-        );
-        largeFont.draw(
-                batch, String.format("Half-move clock:%3d", halfmoveClock),
-                col, rowTwoY
-        );
-        largeFont.draw(
-                batch, String.format("Zobrist hash: %s", zobristTracker.getVal()),
-                col, rowThreeY
-        );
-        ArrayList<String> other = otherInfo();
-        for (int i = 0; i < other.size(); i++) {
-            smallFont.draw(
-                    batch, other.get(i),
-                    col,
-                    ChessGame.HEIGHT - ((fontSpacing * 2) * (i + 5.75f))
-            );
-        }
-        batch.end();
-    }
-
-    public ArrayList<String> otherInfo() {
-        final Move lastMove = getLastMove();
-        return new ArrayList<String>(){{
-            if (lastMove != null && clickedMove == null) {
-                if (lastMove.getScore() != null) {
-                    add(String.format("Last move: (%d leaf-nodes, %.2fs, depth: %d)",
-                            lastMove.getLeafNodesSearchedToScore(),
-                            lastMove.getTimeToScoreSecs(),
-                            lastMove.getScoreDepth()));
-                    add(lastMove.toString());
-                    addAll(lastMove.getAnticipatedSequence());
-                } else {
-                    add("Last move:");
-                    add(lastMove.toString());
-                }
-            }
-            if (gameFinished()) {
-                add(endOfGameMessage);
-            }
-            if (clickedMove != null) {
-                addAll(clickedMoveAnalysis);
-            }
-        }};
-    }
-
-    public void processClick(double x_prop, double y_prop, boolean rightClick) {
-        int clickedRow = (int) (y_prop * 8);
-        int clickedCol = (int) (x_prop * 8);
-        // invert axes
-        if (flipBoard) {
-            clickedRow = 7 - clickedRow;
-            clickedCol = 7 - clickedCol;
-        }
-        // clicked out of bounds
-        if (clickedRow < 0 || 7 < clickedRow ||
-                clickedCol < 0 || 7 < clickedCol) {
-            focusedOn = null;
-            return;
-        }
-        Piece clickedPiece = contents[clickedRow][clickedCol];
-        // player has selected a piece
-        if (clickedPiece != null && clickedPiece.side == nextTurn) {
-            focusedOn = clickedPiece;
-            possibleMoves = focusedOn.getValidMoves();
-        }
-        // player has attempted a move
-        if (focusedOn != null &&
-                (clickedPiece == null || clickedPiece.side != focusedOn.side)) {
-            clickedMove = Move.getClickedMove(
-                    focusedOn, new Square(clickedRow, clickedCol)
-            );
-            if (clickedMove != null) {
-                if (rightClick) {
-                    System.out.println("Clicked move:");
-                    System.out.println(clickedMove);
-                    System.out.println("Analysing: ");
-                    clickedMoveAnalysis = clickedMove.analysis();
-                    clickedMove.printAnticipatedSequence();
-                } else {
-                    finaliseMove(clickedMove);
-                }
-            }
-        }
-    }
-
-    public void undoLastMove() {
-        if (getLastMove() != null) {
-            getLastMove().undo();
-            focusedOn = null;
-            stalemated = false;
-            checkmated = false;
-        } else {
-            System.out.println("Nothing to undo");
-        }
-    }
-
     public ArrayList<Move> getAllValidMoves() {
-        getAllValidMoveCalls++;
         return new ArrayList<Move>() {{
             for (Piece piece : getPieces(nextTurn)) {
                 if (!piece.hasBeenTaken()) {
@@ -238,46 +66,12 @@ public class Board {
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public void computeMove() {
+    public Move computeMove() {
         System.out.println("Computing move:");
         Node rootNode = new Node(this);
         Move bestMove = new Scorer(rootNode).getBestMove();
         bestMove.printAnticipatedSequence();
-        finaliseMove(bestMove);
-    }
-
-    public void finaliseMove(Move move) {
-        move.make();
-        focusedOn = null;
-        clickedMove = null;
-        checkEndOfGame();
-        System.out.format("Zobrist hash: %d\n\n", zobristTracker.getVal());
-    }
-
-    public void checkEndOfGame() {
-        if (noValidMoveExists()) {
-            if (isInCheck(nextTurn)) {
-                declareCheckmate();
-            } else {
-                declareStalemate();
-            }
-        } else if (!stalemated) {
-            checkImplicitStalemate();
-            if (halfmoveClock >= 50) {
-                declareStalemate();
-            }
-        }
-    }
-
-    // pieces that are putting this side in check
-    public ArrayList<Piece> checkingPieces(Side side) {
-        ArrayList<Piece> checkingPieces = new ArrayList<>();
-        for (Piece piece : getPieces(side.opponent())) {
-            if (!piece.hasBeenTaken() && piece.isChecking()) {
-                checkingPieces.add(piece);
-            }
-        }
-        return checkingPieces;
+        return bestMove;
     }
 
     public boolean isInCheck(Side side) {
@@ -310,44 +104,8 @@ public class Board {
         return true;
     }
 
-    private void checkImplicitStalemate() {
-        if (numBlack + numWhite == 2) {
-            declareStalemate();
-        } else if (numBlack == 2 || numWhite == 2) {
-            for (Piece piece : getPieces(Side.WHITE)) {
-                if (piece.hasBeenTaken()) continue;
-                if (piece instanceof Queen || piece instanceof Rook ||
-                        piece instanceof Pawn) {
-                    return;
-                }
-            }
-            for (Piece piece : getPieces(Side.BLACK)) {
-                if (piece.hasBeenTaken()) continue;
-                if (piece instanceof Queen || piece instanceof Rook ||
-                        piece instanceof Pawn) {
-                    return;
-                }
-            }
-            declareStalemate();
-        }
-    }
-
-    private void declareCheckmate() {
-        checkmated = true;
-        endOfGameMessage = String.format(
-                "\nCheckmate! Victory to %s in %d moves.\n",
-                nextTurn.opponent(), fullmoveNumber);
-    }
-
-    private void declareStalemate() {
-        stalemated = true;
-        endOfGameMessage = String.format(
-                "\nStalemate... How boring. In %d moves.\n",
-                fullmoveNumber);
-    }
-
     public String toFen() {
-        StringBuilder board = new StringBuilder();
+        StringBuilder fen = new StringBuilder();
         StringBuilder rowStr;
         String pieceStr;
         int blank;
@@ -376,10 +134,11 @@ public class Board {
             if (blank > 0) {
                 rowStr.append(blank);
             }
-            board.append(rowStr).append("/");
+            fen.append(rowStr).append("/");
         }
-        board = new StringBuilder(board.substring(0, board.length() - 1));
-        board.append(" ").append(
+        // remove final "/"
+        fen = new StringBuilder(fen.substring(0, fen.length() - 1));
+        fen.append(" ").append(
                 nextTurn.toString().substring(0, 1).toLowerCase());
         String castlingNotation = "";
         // check if white can castle either side
@@ -404,9 +163,9 @@ public class Board {
             }
         }
         if (castlingNotation.length() == 0) {
-            board.append(" -");
+            fen.append(" -");
         } else {
-            board.append(" ").append(castlingNotation);
+            fen.append(" ").append(castlingNotation);
         }
         Move lastMove = getLastMove();
         if (lastMove != null && lastMove.piece instanceof Pawn &&
@@ -414,404 +173,13 @@ public class Board {
             Square intermediateSquare = new Square(
                     (lastMove.to.row + lastMove.from.row) / 2,
                     lastMove.from.col);
-            board.append(" ").append(intermediateSquare);
+            fen.append(" ").append(intermediateSquare);
         } else {
-            board.append(" -");
+            fen.append(" -");
         }
-        board.append(" ").append(halfmoveClock);
-        board.append(" ").append(fullmoveNumber);
-        return board.toString();
-    }
-
-    private void initialise(String fen) {
-        String[] fenComponents = fen.split(" ");
-        String[] boardRows = fenComponents[0].split("/");
-        int charInRow;
-        ArrayList<Piece> whitePieces = new ArrayList<>();
-        ArrayList<Piece> blackPieces = new ArrayList<>();
-        for (int row = 0; row < SIZE; row++) {
-            charInRow = 0;
-            for (int col = 0; col < SIZE; col++) {
-                char currentChar = boardRows[row].charAt(charInRow);
-                if (Character.isDigit(currentChar)) {
-                    col += Character.getNumericValue(currentChar) - 1;
-                } else {
-                    Side pieceSide = (Character.isUpperCase(currentChar)) ?
-                            Side.WHITE : Side.BLACK;
-                    String pieceType = Character
-                            .toString(currentChar)
-                            .toLowerCase();
-                    switch (pieceType) {
-                        case "k":
-                            King newKing;
-                            if (pieceSide == Side.WHITE) {
-                                newKing = new King(Side.WHITE, row, col, this);
-                                whitePieces.add(newKing);
-                                setWhiteKing(newKing);
-                            } else {
-                                newKing = new King(Side.BLACK, row, col, this);
-                                blackPieces.add(newKing);
-                                setBlackKing(newKing);
-                            }
-                            break;
-                        case "q":
-                            if (pieceSide == Side.WHITE) {
-                                whitePieces.add(new Queen(
-                                        Side.WHITE, row, col, true, this
-                                ));
-                            } else {
-                                blackPieces.add(new Queen(
-                                        Side.BLACK, row, col, true, this
-                                ));
-                            }
-                            break;
-                        case "r":
-                            if (pieceSide == Side.WHITE) {
-                                whitePieces.add(new Rook(Side.WHITE, row, col, this));
-                            } else {
-                                blackPieces.add(new Rook(Side.BLACK, row, col, this));
-                            }
-                            break;
-                        case "b":
-                            if (pieceSide == Side.WHITE) {
-                                whitePieces.add(new Bishop(
-                                        Side.WHITE, row, col, true, this
-                                ));
-                            } else {
-                                blackPieces.add(new Bishop(
-                                        Side.BLACK, row, col, true, this
-                                ));
-                            }
-                            break;
-                        case "n":
-                            if (pieceSide == Side.WHITE) {
-                                whitePieces.add(new Knight(
-                                        Side.WHITE, row, col, true, this
-                                ));
-                            } else {
-                                blackPieces.add(new Knight(
-                                        Side.BLACK, row, col, true, this
-                                ));
-                            }
-                            break;
-                        case "p":
-                            if (pieceSide == Side.WHITE) {
-                                whitePieces.add(new Pawn(Side.WHITE, row, col, this));
-                            } else {
-                                blackPieces.add(new Pawn(Side.BLACK, row, col, this));
-                            }
-                            break;
-                        default:
-                            assert false : "bad fen ; "+ pieceType + " invalid";
-                            break;
-                    }
-                }
-                charInRow++;
-            }
-        }
-        this.whitePieces = new Piece[whitePieces.size()];
-        this.blackPieces = new Piece[blackPieces.size()];
-        for (int i = 0; i < whitePieces.size(); i++) {
-            this.whitePieces[i] = whitePieces.get(i);
-        }
-        for (int i = 0; i < blackPieces.size(); i++) {
-            this.blackPieces[i] = blackPieces.get(i);
-        }
-        nextTurn = (fenComponents[1].equals("w")) ? Side.WHITE : Side.BLACK;
-        // what castling is allowed
-        if (!fenComponents[2].contains("K")) {
-            if (contentsAt(7, 7) instanceof Rook) {
-                contentsAt(7, 7).setUnmoved(false);
-            }
-        } else {
-            assert contentsAt(7, 7) instanceof Rook;
-            assert contentsAt(7, 4) instanceof King;
-            assert contentsAt(7, 7).isUnmoved();
-            assert contentsAt(7, 4).isUnmoved();
-        }
-        if (!fenComponents[2].contains("Q")) {
-            if (contentsAt(7, 0) instanceof Rook) {
-                contentsAt(7, 0).setUnmoved(false);
-            }
-        } else {
-            assert contentsAt(7, 0) instanceof Rook;
-            assert contentsAt(7, 4) instanceof King;
-            assert contentsAt(7, 0).isUnmoved();
-            assert contentsAt(7, 4).isUnmoved();
-        }
-        if (!fenComponents[2].contains("k")) {
-            if (contentsAt(0, 7) instanceof Rook) {
-                contentsAt(0, 7).setUnmoved(false);
-            }
-        } else {
-            assert contentsAt(0, 7) instanceof Rook;
-            assert contentsAt(0, 4) instanceof King;
-            assert contentsAt(0, 7).isUnmoved();
-            assert contentsAt(0, 4).isUnmoved();
-        }
-        if (!fenComponents[2].contains("q")) {
-            if (contentsAt(0, 0) instanceof Rook) {
-                contentsAt(0, 0).setUnmoved(false);
-            }
-        } else {
-            assert contentsAt(0, 0) instanceof Rook;
-            assert contentsAt(0, 4) instanceof King;
-            assert contentsAt(0, 0).isUnmoved();
-            assert contentsAt(0, 4).isUnmoved();
-        }
-        if (!fenComponents[3].equals("-")) {
-            // is en passant possible
-            char colChar = fenComponents[3].charAt(0);
-            char rowChar = fenComponents[3].charAt(1);
-            int col = colChar - 'a';
-            int row = 8 - Character.getNumericValue(rowChar);
-            int lastMoveToRow = (row == 2) ? 3 : 4;
-            int lastMoveFromRow = (row == 2) ? 1 : 6;
-            Square movedTo = new Square(lastMoveToRow, col);
-            Square movedFrom = new Square(lastMoveFromRow, col);
-            Piece movedPiece = contentsAt(lastMoveToRow, col);
-            movedPiece.setSquare(movedFrom);
-            setContents(movedFrom, movedPiece);
-            setContents(movedTo, null);
-            movedPiece.setUnmoved(true);
-            Move lastMove = new Move(movedPiece, movedTo);
-            updateNextTurn();
-            finaliseMove(lastMove);
-        }
-        halfmoveClock = Integer.parseInt(fenComponents[4]);
-        fullmoveNumber = Integer.parseInt(fenComponents[5]);
-        assert toFen().equals(fen) :
-                "\nResulting fen: " + fen +
-                "\nExpected fen:  " + toFen();
-    }
-
-    public Piece contentsAt(int row, int col) {
-        return contents[row][col];
-    }
-
-    public Piece contentsAt(Square square) {
-        return contents[square.row][square.col];
-    }
-
-    public void setContents(Square square, Piece piece) {
-        contents[square.row][square.col] = piece;
-    }
-
-    public Move getLastMove() {
-        if (moveHistory.size() > 0) {
-            return moveHistory.get(moveHistory.size() - 1);
-        } else {
-            return null;
-        }
-    }
-
-    public boolean gameFinished() {
-        return checkmated || stalemated;
-    }
-
-    public Side getNextTurn() {
-        return nextTurn;
-    }
-
-    public void updateNextTurn() {
-        nextTurn = nextTurn.opponent();
-    }
-
-    public void flip() {
-        flipBoard = !flipBoard;
-    }
-
-    public int getIndex(Piece piece) {
-        if (piece.side == Side.WHITE) {
-            return numWhite;
-        } else {
-            return numBlack;
-        }
-    }
-
-    public void addPiece(Piece piece) {
-        if (piece.side == Side.WHITE) {
-            numWhite++;
-        } else {
-            numBlack++;
-        }
-        setContents(piece.square(), piece);
-    }
-
-    public Piece[] getPieces(Side side) {
-        return (side == Side.WHITE) ? whitePieces : blackPieces;
-    }
-
-    public int numPieces(Side side) {
-        return side == Side.WHITE ? numWhite : numBlack;
-    }
-
-    public void incrementNumPieces(Side side) {
-        if (side == Side.WHITE) {
-            numWhite++;
-        } else {
-            numBlack++;
-        }
-    }
-
-    public void decrementNumPieces(Side side) {
-        if (side == Side.WHITE) {
-            numWhite--;
-        } else {
-            numBlack--;
-        }
-    }
-
-    public void setWhiteKing(King whiteKing) {
-        this.whiteKing = whiteKing;
-    }
-
-    public void setBlackKing(King blackKing) {
-        this.blackKing = blackKing;
-    }
-
-    public King getKing(Side side) {
-        return (side == Side.WHITE) ? whiteKing : blackKing;
-    }
-
-    public int getHalfmoveClock() {
-        return halfmoveClock;
-    }
-
-    public void setHalfmoveClock(int halfmoveClock) {
-        this.halfmoveClock = halfmoveClock;
-    }
-
-    public int getFullmoveNumber() {
-        return fullmoveNumber;
-    }
-
-    public void setFullmoveNumber(int fullmoveNumber) {
-        this.fullmoveNumber = fullmoveNumber;
-    }
-
-    public static void dispose() {
-        IMAGE.dispose();
-        PINK_SQR.dispose();
-        NTRL_SQR.dispose();
-        BLUE_SQR.dispose();
-        GREEN_SQR.dispose();
-    }
-
-    public boolean pieceArraysMatchBoard(Move move) {
-        Piece piece;
-        int whiteCount = 0;
-        int blackCount = 0;
-        try {
-            for (int row = 0; row < SIZE; row++) {
-                for (int col = 0; col < SIZE; col++) {
-                    piece = contentsAt(row, col);
-                    if (piece != null) {
-                        assert piece.square().col == col :
-                                "Wrong col internally " + piece +
-                                        " located on board at " +
-                                        new Square(row, col);
-                        assert piece.square().row == row :
-                                "Wrong row internally " + piece +
-                                        " located on board at " +
-                                        new Square(row, col);
-                        if (piece.side == Side.WHITE) {
-                            whiteCount++;
-                        } else {
-                            blackCount++;
-                        }
-                    }
-                }
-            }
-            assert numWhite == whiteCount : "not all white pieces present";
-            assert numBlack == blackCount : "not all black pieces present";
-            for (Piece whitePiece : getPieces(Side.WHITE)) {
-                assert whitePiece.hasBeenTaken() ||
-                        contentsAt(whitePiece.square()) == whitePiece :
-                        "Board square mismatched at " +
-                                whitePiece.square() + "; " +
-                                whitePiece + " vs board contents " +
-                                contentsAt(whitePiece.square());
-            }
-            for (Piece blackPiece : getPieces(Side.BLACK)) {
-                assert blackPiece.hasBeenTaken() ||
-                        contentsAt(blackPiece.square()) == blackPiece :
-                        "Board square mismatched at " +
-                                blackPiece.square() + "; " +
-                                blackPiece + " vs board contents " +
-                                contentsAt(blackPiece.square());
-            }
-        } catch (AssertionError e) {
-            System.out.println("Piece arrays don't match board. Move: " + move);
-            printSnapShot();
-            System.out.println("Board white count: " + whiteCount);
-            System.out.println("Board black count: " + blackCount);
-            System.out.println("White pieces: ");
-            for (Piece whitePiece : getPieces(Side.WHITE)) {
-                System.out.println(whitePiece);
-            }
-            System.out.println("Black pieces: ");
-            for (Piece blackPiece : getPieces(Side.BLACK)) {
-                System.out.println(blackPiece);
-            }
-            System.out.println("Array white count: " + numWhite);
-            System.out.println("Array black count: " + numBlack);
-            System.out.println("Move history: (most recent last)");
-            for (Move previousMove : moveHistory) {
-                System.out.println(previousMove);
-            }
-            e.printStackTrace();
-            System.exit(1);
-        }
-        return true;
-    }
-
-    public void printSnapShot() {
-        System.out.println("Board: " + this);
-        Piece piece;
-        String pieceStr;
-        for (int row = 0; row < SIZE; row++) {
-            for (int col = 0; col < SIZE; col++) {
-                piece = contentsAt(row, col);
-                if (piece == null) {
-                    System.out.print("|   ");
-                    continue;
-                } else if (piece instanceof Knight) {
-                    pieceStr = "N";
-                } else {
-                    pieceStr = piece.getClass().getSimpleName().substring(0, 1);
-                }
-                if (piece.side == Side.BLACK) {
-                    pieceStr = pieceStr.toLowerCase();
-                }
-                System.out.format("| %s ", pieceStr);
-                assert (piece.square().col == col) :
-                        piece + " should be at " + new Square(row, col);
-                assert (piece.square().row == row) :
-                        piece + " should be at " + new Square(row, col);
-            }
-            System.out.print("|\n");
-        }
-        System.out.format("%s's material advantage: %d\n",
-                nextTurn,
-                nextTurnAdvantage());
-        //System.out.format("Evaluation: %d\n", evaluate());
-        System.out.println(toFen());
-        System.out.println();
-    }
-
-    public int nextTurnAdvantage() {
-        return material(nextTurn) - material(nextTurn.opponent());
-    }
-
-    public int material(Side side) {
-        int material = 0;
-        for (Piece myPiece : getPieces(side)) {
-             if (!myPiece.hasBeenTaken()) {
-                material += myPiece.value;
-            }
-        }
-        return material;
+        fen.append(" ").append(halfmoveClock);
+        fen.append(" ").append(fullmoveNumber);
+        return fen.toString();
     }
 
     public int evaluate() {
@@ -828,12 +196,13 @@ public class Board {
     }
 
     public int oneSidedEval(Side side) {
-        int evaluation = 1000 * material(side);
+        int evaluation = 0;
         boolean[] pawnCols = new boolean[SIZE];
         for (Piece piece : getPieces(side)) {
             if (piece.hasBeenTaken()) {
                 continue;
             }
+            evaluation += 1000 * piece.value;
             if (piece instanceof Pawn) {
                 // moving from rank 6 to 7 is better than rank 3 to 4, hence pow
                 evaluation += Math.pow(piece.progressFrom0thRank() - 1, 1.5);
@@ -921,8 +290,101 @@ public class Board {
         return pawnAttackedSquares;
     }
 
-    public static boolean isFlipped() {
-        return flipBoard;
+    public Piece contentsAt(int row, int col) {
+        return contents[row][col];
+    }
+
+    public Piece contentsAt(Square square) {
+        return contents[square.row][square.col];
+    }
+
+    public void setContents(Square square, Piece piece) {
+        contents[square.row][square.col] = piece;
+    }
+
+    public Move getLastMove() {
+        if (moveHistory.size() > 0) {
+            return moveHistory.get(moveHistory.size() - 1);
+        } else {
+            return null;
+        }
+    }
+
+    public Side getNextTurn() {
+        return nextTurn;
+    }
+
+    public void updateNextTurn() {
+        nextTurn = nextTurn.opponent();
+    }
+
+    public int getIndex(Piece piece) {
+        if (piece.side == Side.WHITE) {
+            return numWhite;
+        } else {
+            return numBlack;
+        }
+    }
+
+    public void addPiece(Piece piece) {
+        if (piece.side == Side.WHITE) {
+            numWhite++;
+        } else {
+            numBlack++;
+        }
+        setContents(piece.square(), piece);
+    }
+
+    public Piece[] getPieces(Side side) {
+        return (side == Side.WHITE) ? whitePieces : blackPieces;
+    }
+
+    public int numPieces(Side side) {
+        return side == Side.WHITE ? numWhite : numBlack;
+    }
+
+    public void incrementNumPieces(Side side) {
+        if (side == Side.WHITE) {
+            numWhite++;
+        } else {
+            numBlack++;
+        }
+    }
+
+    public void decrementNumPieces(Side side) {
+        if (side == Side.WHITE) {
+            numWhite--;
+        } else {
+            numBlack--;
+        }
+    }
+
+    public void setWhiteKing(King whiteKing) {
+        this.whiteKing = whiteKing;
+    }
+
+    public void setBlackKing(King blackKing) {
+        this.blackKing = blackKing;
+    }
+
+    public King getKing(Side side) {
+        return (side == Side.WHITE) ? whiteKing : blackKing;
+    }
+
+    public int getHalfmoveClock() {
+        return halfmoveClock;
+    }
+
+    public void setHalfmoveClock(int halfmoveClock) {
+        this.halfmoveClock = halfmoveClock;
+    }
+
+    public int getFullmoveNumber() {
+        return fullmoveNumber;
+    }
+
+    public void setFullmoveNumber(int fullmoveNumber) {
+        this.fullmoveNumber = fullmoveNumber;
     }
 }
 

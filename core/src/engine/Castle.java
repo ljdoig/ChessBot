@@ -31,18 +31,14 @@ public class Castle extends Move {
     public void make() {
         ((King) piece).setHasCastled(true);
         rookMove.make();
-        assert board.pieceArraysMatchBoard(this);
         super.make();
-        assert board.pieceArraysMatchBoard(this);
     }
 
     @Override
     public void undo() {
         ((King) piece).setHasCastled(false);
         rookMove.undo();
-        assert board.pieceArraysMatchBoard(this);
         super.undo();
-        assert board.pieceArraysMatchBoard(this);
     }
 
     @Override
