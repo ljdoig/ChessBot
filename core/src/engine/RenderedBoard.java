@@ -212,7 +212,7 @@ public class RenderedBoard extends Board {
     private void declareCheckmate() {
         checkmated = true;
         endOfGameMessage = String.format(
-                "\nCheckmate! Victory to %s in %d moves.\n",
+                "Checkmate! Victory to %s in %d moves",
                 nextTurn.opponent(), fullmoveNumber
         );
     }
@@ -220,8 +220,9 @@ public class RenderedBoard extends Board {
     private void declareStalemate() {
         stalemated = true;
         endOfGameMessage = String.format(
-                "\nStalemate... How boring. In %d moves.\n",
-                fullmoveNumber);
+                "Stalemate... How boring. In %d moves",
+                fullmoveNumber
+        );
     }
 
     public boolean gameFinished() {

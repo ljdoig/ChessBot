@@ -6,7 +6,7 @@ import java.util.PriorityQueue;
 // A node in the minimax tree representing a state of the board
 public class Node {
     private static EvaluationTracker evaluationTracker;
-
+    private static boolean training;
     public final boolean isRoot;
     public final Board board;
     public final Move precedingMove;
@@ -116,7 +116,7 @@ public class Node {
             bestMove = subsequentMove;
             bestMove.setScore(nodeValue);
         }
-        if (precedingMove != null) {
+        if (training && precedingMove != null) {
             precedingMove.setSuccessor(subsequentMove);
             precedingMove.setScore(-nodeValue);
         }
@@ -138,5 +138,9 @@ public class Node {
     public static EvaluationTracker getEvaluationTracker() {
         evaluationTracker.setTranspositions(transpositionTable.size());
         return evaluationTracker;
+    }
+
+    public static void setTraining(boolean training) {
+        Node.training = training;
     }
 }

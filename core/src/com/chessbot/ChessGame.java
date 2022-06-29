@@ -25,7 +25,7 @@ public class ChessGame extends Game {
 		viewport.apply();
 		cam.position.set(ChessGame.WIDTH / 2.0f,ChessGame.HEIGHT / 2.0f, 0);
 		cam.update();
-		font = FontLoader.load("font/Lotuscoder-0WWrG.ttf", 25);
+		font = FontLoader.load("font/Lotuscoder-0WWrG.ttf", 23);
 		glyphLayout = new GlyphLayout();
 
 		System.out.println("Opening to menu screen");

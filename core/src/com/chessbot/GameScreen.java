@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.utils.ScreenUtils;
+import engine.Node;
 import engine.RenderedBoard;
 import engine.Side;
 import engine.Square;
@@ -12,19 +13,22 @@ import java.util.ArrayList;
 
 public class GameScreen implements Screen {
     private final ChessGame game;
-    private RenderedBoard board;
+    private final RenderedBoard board;
     private boolean whiteBot;
     private boolean blackBot;
     private final boolean invert;
+    private final boolean training;
     private boolean firstFrame = true;
 
-    public GameScreen(ChessGame game, RenderedBoard board,
-                      boolean whiteBot, boolean blackBot, boolean invert) {
+    public GameScreen(ChessGame game, RenderedBoard board, boolean whiteBot,
+                      boolean blackBot, boolean invert, boolean training) {
         this.game = game;
         this.board = board;
         this.whiteBot = whiteBot;
         this.blackBot = blackBot;
         this.invert = invert;
+        this.training = training;
+        Node.setTraining(training);
     }
 
     @Override
@@ -38,7 +42,7 @@ public class GameScreen implements Screen {
         }
 
         // allow move take-back
-        if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
+        if (training && Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
             board.undoLastMove();
             if (whiteBot ^ blackBot) board.undoLastMove();
         }
@@ -47,11 +51,11 @@ public class GameScreen implements Screen {
             System.out.println(board.toFen());
         }
         // Toggle white player between automated and human
-        if (Gdx.input.isKeyJustPressed(Input.Keys.W)) {
+        if (training && Gdx.input.isKeyJustPressed(Input.Keys.W)) {
             whiteBot = !whiteBot;
         }
         // Toggle black player between automated and human
-        if (Gdx.input.isKeyJustPressed(Input.Keys.L)) {
+        if (training && Gdx.input.isKeyJustPressed(Input.Keys.L)) {
             blackBot = !blackBot;
         }
         // restart game
@@ -63,7 +67,7 @@ public class GameScreen implements Screen {
         // computer's turn (or someone pressed A to automate their next move)
         if ((board.getNextTurn() == Side.WHITE && whiteBot) ||
             (board.getNextTurn() == Side.BLACK && blackBot) ||
-            Gdx.input.isKeyJustPressed(Input.Keys.A)) {
+            (training && Gdx.input.isKeyJustPressed(Input.Keys.A))) {
             board.computeAndMakeMove();
             refreshDisplay();
         } else if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
@@ -74,7 +78,7 @@ public class GameScreen implements Screen {
                 );
             }
             refreshDisplay();
-        } else if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
+        } else if (training && Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
             Square clickedSquare = getClickedSquare();
             if (clickedSquare != null) {
                 board.processClick(
@@ -110,7 +114,20 @@ public class GameScreen implements Screen {
     private void displayInfo() {
         game.getBatch().begin();
         int row = 0;
-        int col = ChessGame.HEIGHT + 10;
+        int col = ChessGame.HEIGHT + 15;
+        // display instructions
+        ArrayList<String> instructions = new ArrayList<String>(){{
+            if (!board.gameFinished() && !(whiteBot && blackBot)) {
+                add("Click to move");
+                add("Hold R while promoting for a Rook, etc.");
+            }
+            add("Press BACKSPACE for new game");
+        }};
+        for (String s : instructions) {
+            game.drawText(s, col, yCoordForText(row++));
+        }
+        String delimiter = "-----------------------------------------";
+        game.drawText(delimiter, col, yCoordForText(row++));
         // display general game stats
         game.drawText(
                 String.format(
@@ -132,7 +149,6 @@ public class GameScreen implements Screen {
                         board.zobristTracker.getVal()),
                 col, yCoordForText(row++)
         );
-        String delimiter = "-----------------------------------------";
         game.drawText(delimiter, col, yCoordForText(row++));
 
         // display cost stats of last move scored
@@ -144,23 +160,26 @@ public class GameScreen implements Screen {
             game.drawText(delimiter, col, yCoordForText(row++));
         }
 
-        // display chosen move and anticipated sequence
-        ArrayList<String> moveInfo = board.moveInfo();
-        for (String s : moveInfo) {
-            game.drawText(s, col, yCoordForText(row++));
-        }
-        if (moveInfo.size() > 0) {
-            game.drawText(delimiter, col, yCoordForText(row++));
+        if (training) {
+            // display chosen move and anticipated sequence
+            ArrayList<String> moveInfo = board.moveInfo();
+            for (String s : moveInfo) {
+                game.drawText(s, col, yCoordForText(row++));
+            }
+            if (moveInfo.size() > 0) {
+                game.drawText(delimiter, col, yCoordForText(row++));
+            }
         }
 
         if (board.gameFinished()) {
             game.drawText(board.getEndOfGameMessage(), col, yCoordForText(row));
         }
+
         game.getBatch().end();
     }
 
     private float yCoordForText(int row) {
-        return ChessGame.HEIGHT * (0.98f - 0.04f * row);
+        return ChessGame.HEIGHT * (0.98f - 0.035f * row);
     }
 
     @Override

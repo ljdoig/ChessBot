@@ -207,7 +207,8 @@ public class Move implements Comparable<Move> {
             } else if (Gdx.input.isKeyPressed(Input.Keys.B)) {
                 correctPromotion = correctPromotion.and(
                         promotion -> promotion.promoteTo instanceof Bishop);
-            } else if (Gdx.input.isKeyPressed(Input.Keys.K)) {
+            } else if (Gdx.input.isKeyPressed(Input.Keys.K) ||
+                       Gdx.input.isKeyPressed(Input.Keys.N)) {
                 correctPromotion = correctPromotion.and(
                         promotion -> promotion.promoteTo instanceof Knight);
             } else {
