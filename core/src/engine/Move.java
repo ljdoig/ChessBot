@@ -151,12 +151,12 @@ public class Move implements Comparable<Move> {
     }
 
     public void printAnticipatedSequence() {
-        for (String string : getAnticipatedSequence()) {
+        for (String string : anticipatedSequence()) {
             System.out.println(string);
         }
     }
 
-    public ArrayList<String> getAnticipatedSequence() {
+    public ArrayList<String> anticipatedSequence() {
         if (successor == null) {
             return new ArrayList<>();
         }
@@ -243,27 +243,31 @@ public class Move implements Comparable<Move> {
     public void setEvaluationTracker(EvaluationTracker evaluationTracker) {
         this.evaluationTracker = evaluationTracker;
     }
+    
+    public ArrayList<String> evaluationInfo() {
+        return new ArrayList<String>(){{
+            if (evaluationTracker != null) {
+                add(String.format("Depth reached:  %8d", evaluationTracker.getDepth()));
+                add(String.format("Transpositions: %8d", evaluationTracker.getTranspositions()));
+                add(String.format("Leaf nodes:     %8d", evaluationTracker.getLeafNodes()));
+                add(String.format("Evaluations:    %8d", evaluationTracker.getEvaluations()));
+                add(String.format("Time taken:        %.2fs", evaluationTracker.getTimeTaken()));
+            }
+        }};
+    }
 
-    public ArrayList<String> analysis() {
-        ArrayList<String> analysis = new ArrayList<>();
+
+    public void analyse() {
         make();
         Node moveNode = new Node(board);
         successor = new Scorer(moveNode).getBestMove();
         if (successor != null) {
             score = -successor.score;
-            analysis.add(String.format("Test move: (%d leaf-nodes, %.2fs, depth: %d)",
-                    successor.getEvaluationTracker().getLeafNodes(),
-                    successor.getEvaluationTracker().getTimeTaken(),
-                    successor.getEvaluationTracker().getDepth()));
         } else {
             score = -board.evaluate();
-            analysis.add("Test move: (leaf-node)");
         }
         undo();
-        analysis.add(this.toString());
-        analysis.addAll(getAnticipatedSequence());
-        score = null;
-        return analysis;
+        evaluationTracker = Node.getEvaluationTracker();
     }
 
     public boolean isInteresting() {

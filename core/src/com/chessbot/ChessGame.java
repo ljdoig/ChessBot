@@ -8,6 +8,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import engine.RenderedBoard;
 
+// TODO: ADD JAR TO GIT REPO AND UPDATE READ ME
+// TODO: COMMENT AND CLEAN
+
 public class ChessGame extends Game {
 	public static final int WIDTH = 1440;
 	public static final int HEIGHT = 800;

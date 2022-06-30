@@ -5,14 +5,14 @@ import java.util.PriorityQueue;
 
 // A node in the minimax tree representing a state of the board
 public class Node {
-    private static EvaluationTracker evaluationTracker;
+    private static final HashMap<Long, TranspositionEntry> transpositionTable =
+            new HashMap<>();
+    private static EvaluationTracker evaluationTracker = new EvaluationTracker(0);
     private static boolean training;
     public final boolean isRoot;
     public final Board board;
     public final Move precedingMove;
     private Move bestMove;
-    private static final HashMap<Long, TranspositionEntry> transpositionTable =
-            new HashMap<>();
 
     public Node(Board board) {
         this.isRoot = true;

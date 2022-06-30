@@ -81,71 +81,33 @@ public class RenderedBoard extends Board {
         batch.draw(image, location.x, location.y);
     }
 
-    public void processClick(int clickedRow, int clickedCol, boolean rightClick) {
-        // clicked out of bounds
-        if (clickedRow < 0 || 7 < clickedRow ||
-                clickedCol < 0 || 7 < clickedCol) {
-            focusedOn = null;
-            return;
-        }
-        Piece clickedPiece = contentsAt(clickedRow, clickedCol);
+    public Move processLeftClick(Square clickedSquare) {
+        Piece clickedPiece = contentsAt(clickedSquare);
         // player has selected a piece
         if (clickedPiece != null && clickedPiece.side == nextTurn) {
             focusedOn = clickedPiece;
         }
         // player has attempted a move
+        if (focusedOn != null && (clickedPiece == null || clickedPiece.side != focusedOn.side)) {
+            clickedMove = Move.getClickedMove(focusedOn, clickedSquare);
+            return clickedMove;
+        }
+        return null;
+    }
+
+    public Move processRightClick(Square clickedSquare) {
+        if (focusedOn == null)
+            return null;
+        Piece clickedPiece = contentsAt(clickedSquare);
+        // player has attempted a move
         if (focusedOn != null &&
                 (clickedPiece == null || clickedPiece.side != focusedOn.side)) {
-            clickedMove = Move.getClickedMove(
-                    focusedOn, new Square(clickedRow, clickedCol)
-            );
+            clickedMove = Move.getClickedMove(focusedOn, clickedSquare);
             if (clickedMove != null) {
-                if (rightClick) {
-                    System.out.println("Clicked move:");
-                    System.out.println(clickedMove);
-                    System.out.println("Analysing: ");
-                    clickedMoveAnalysis = clickedMove.analysis();
-                    clickedMove.printAnticipatedSequence();
-                } else {
-                    finaliseMove(clickedMove);
-                }
+                return clickedMove;
             }
         }
-    }
-
-    public ArrayList<String> scorerInfo() {
-        final Move lastMove = getLastMove();
-        return new ArrayList<String>(){{
-            if (lastMove != null && clickedMove == null) {
-                if (lastMove.getScore() != null) {
-                    EvaluationTracker ET = lastMove.getEvaluationTracker();
-                    add(String.format("Depth reached:  %8d", ET.getDepth()));
-                    add(String.format("Transpositions: %8d", ET.getTranspositions()));
-                    add(String.format("Leaf nodes:     %8d", ET.getLeafNodes()));
-                    add(String.format("Evaluations:    %8d", ET.getEvaluations()));
-                    add(String.format("Time taken:        %.2fs", ET.getTimeTaken()));
-                }
-            }
-        }};
-    }
-
-    public ArrayList<String> moveInfo() {
-        final Move lastMove = getLastMove();
-        return new ArrayList<String>(){{
-            if (lastMove != null && clickedMove == null) {
-                if (lastMove.getScore() != null) {
-                    add("Last move:");
-                    add(lastMove.toString());
-                    addAll(lastMove.getAnticipatedSequence());
-                } else {
-                    add("Last move:");
-                    add(lastMove.toString());
-                }
-            }
-            if (clickedMove != null) {
-                addAll(clickedMoveAnalysis);
-            }
-        }};
+        return null;
     }
 
     public void undoLastMove() {
@@ -163,7 +125,7 @@ public class RenderedBoard extends Board {
         finaliseMove(super.computeMove());
     }
 
-    private void finaliseMove(Move move) {
+    public void finaliseMove(Move move) {
         move.make();
         focusedOn = null;
         clickedMove = null;
@@ -211,9 +173,12 @@ public class RenderedBoard extends Board {
 
     private void declareCheckmate() {
         checkmated = true;
+
         endOfGameMessage = String.format(
                 "Checkmate! Victory to %s in %d moves",
-                nextTurn.opponent(), fullmoveNumber
+                nextTurn.opponent(),
+                // if black just checkmated, it won't really be 'next turn'
+                nextTurn == Side.WHITE ? fullmoveNumber - 1 : fullmoveNumber
         );
     }
 
