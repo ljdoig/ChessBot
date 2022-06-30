@@ -34,6 +34,7 @@ public class Node {
         int alphaOrig = alpha;
         TranspositionEntry entry = transpositionTable.get(board.zobristTracker.getVal());
         if (entry != null && entry.depth >= depth) {
+            evaluationTracker.incrementTranspositions();
             if (entry.flag == 'E') {
                 // Exact match found
                 return entry.value;
@@ -136,7 +137,6 @@ public class Node {
     }
 
     public static EvaluationTracker getEvaluationTracker() {
-        evaluationTracker.setTranspositions(transpositionTable.size());
         return evaluationTracker;
     }
 

@@ -15,8 +15,8 @@ public class EvaluationTracker {
         return transpositions;
     }
 
-    public void setTranspositions(int transpositions) {
-        this.transpositions = transpositions;
+    public void incrementTranspositions() {
+        transpositions++;
     }
 
     public int getLeafNodes() {

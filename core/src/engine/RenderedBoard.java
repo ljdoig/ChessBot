@@ -19,7 +19,6 @@ public class RenderedBoard extends Board {
     private String endOfGameMessage;
     private Piece focusedOn;
     private Move clickedMove;
-    private ArrayList<String> clickedMoveAnalysis = new ArrayList<>();
     private boolean stalemated = false;
     private boolean checkmated = false;
 

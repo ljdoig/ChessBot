@@ -51,7 +51,7 @@ public class Board {
     }
 
     public ArrayList<Move> getAllValidMoves() {
-        return new ArrayList<Move>() {{
+        return new ArrayList<Move>(40) {{
             for (Piece piece : getPieces(nextTurn)) {
                 if (!piece.hasBeenTaken()) {
                     addAll(piece.getValidMoves());
