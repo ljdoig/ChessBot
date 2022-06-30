@@ -30,7 +30,7 @@ public class GameScreen implements Screen {
         this.invert = invert;
         this.training = training;
         Node.setTraining(training);
-        displayedRowSpacing = training ? 0.03f :0.035f;
+        displayedRowSpacing = training ? 0.029f :0.035f;
     }
 
     @Override
