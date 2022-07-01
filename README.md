@@ -74,15 +74,16 @@ or on Mac:
 java -jar -XstartOnFirstThread ChessBot.jar
 ```
 
-If you don't have Java, you can find self-contained executables
-[here](https://drive.google.com/drive/folders/16GjyDXb7J9O-tSngmbnjE3i5C6U_TfSY?usp=sharing).
+If you don't have Java, you can find self-contained executables on my
+[Google Drive](https://drive.google.com/drive/folders/16GjyDXb7J9O-tSngmbnjE3i5C6U_TfSY?usp=sharing),
+which were packaged using [packr](https://github.com/libgdx/packr).
 Just download the relevant folder and run either the `.app` on Mac or
 the `.exe` on Windows. You may need to change your permissions on Mac with
 ```
 chmod +x ChessBot.app/Contents/MacOS/ChessBot
 ```
 
-One more options is that you can just clone this repo and open it in Intellij.
+One more option is that you can just clone this repo and open it in Intellij.
 Gradle will automatically prepare dependencies, and you can then compile and run the
 program through the main method in `desktop/src/com.chessbot/DesktopLauncher.java`. If
 you're on a Mac you will need to modify the run configuration to include the flag
