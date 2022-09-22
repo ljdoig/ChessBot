@@ -2,6 +2,8 @@
 
 ![Promotion](./images/Example_Promotion.png)
 
+[Play now!](https://ljdoig.github.io/)
+
 ## [Negamax](https://en.wikipedia.org/wiki/Negamax)
 The Negamax algorithm is a simplified implementation of Minimax that takes into
 account the zero-sum nature of Chess: however good a move is for you, that's how 
@@ -64,8 +66,10 @@ out the expected sequence of moves predicted by the Negamax traversal:
 ## Run the program yourself
 This project uses the [LibGDX](https://libgdx.com/) game engine to render and
 process user input. This allows the program to be packaged in several ways.
-The smallest and easiest way to run the program is via the
-[.jar file](./ChessBot.jar), which you can run with:
+The most convenient of these is via my [Github Pages](https://ljdoig.github.io/).
+
+If for some reason you don't want to do that, you can also run the program 
+via the [.jar file](./ChessBot.jar), with:
 ```
 java -jar ChessBot.jar
 ```
@@ -83,7 +87,7 @@ the `.exe` on Windows. You may need to change your permissions on Mac with
 chmod +x ChessBot.app/Contents/MacOS/ChessBot
 ```
 
-One more option is that you can just clone this repo and open it in Intellij.
+If you wish to play around with the source code you can just clone this repo and open it in Intellij.
 Gradle will automatically prepare dependencies, and you can then compile and run the
 program through the main method in `desktop/src/com.chessbot/DesktopLauncher.java`. If
 you're on a Mac you will need to modify the run configuration to include the flag
