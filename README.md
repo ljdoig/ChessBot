@@ -68,8 +68,8 @@ This project uses the [LibGDX](https://libgdx.com/) game engine to render and
 process user input. This allows the program to be packaged in several ways.
 The most convenient of these is via my [Github Pages](https://ljdoig.github.io/).
 
-If for some reason you don't want to do that, you can also run the program 
-via the [.jar file](./ChessBot.jar), with:
+This page seems to run slightly slower, meaning the search depth is generally lower
+than running on your laptop. You can instead run the program via the [.jar file](./ChessBot.jar), with:
 ```
 java -jar ChessBot.jar
 ```
