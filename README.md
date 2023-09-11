@@ -2,7 +2,9 @@
 
 ![Promotion](./images/Example_Promotion.png)
 
-[Play now!](https://ljdoig.github.io/)
+[Play now!](https://ljdoig.github.io/ChessBot/)
+Unfortunately this browser version is quite slow, so for a more competitive bot
+please see options below.
 
 ## [Negamax](https://en.wikipedia.org/wiki/Negamax)
 The Negamax algorithm is a simplified implementation of Minimax that takes into
@@ -66,10 +68,10 @@ out the expected sequence of moves predicted by the Negamax traversal:
 ## Run the program yourself
 This project uses the [LibGDX](https://libgdx.com/) game engine to render and
 process user input. This allows the program to be packaged in several ways.
-The most convenient of these is via my [Github Pages](https://ljdoig.github.io/).
 
-This page seems to run slightly slower, meaning the search depth is generally lower
-than running on your laptop. You can instead run the program via the [.jar file](./ChessBot.jar), with:
+The most convenient of these is via my [Github Pages](https://ljdoig.github.io/ChessBot/). Unfortunately, 
+this page run much slower for me than running locally, meaning the search depth is lower and the 
+bot is not very good. You can instead run the program via the [.jar file](./ChessBot.jar), with:
 ```
 java -jar ChessBot.jar
 ```
