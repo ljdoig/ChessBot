@@ -344,7 +344,7 @@ public abstract class Piece {
 
     @Override
     public String toString() {
-        return side + " " + String.format("%-6s", getClass().getSimpleName());
+        return side + " " + Move.pad(getClass().getSimpleName(),6);
     }
 
     public Square square() {

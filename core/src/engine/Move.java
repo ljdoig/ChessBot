@@ -170,11 +170,20 @@ public class Move implements Comparable<Move> {
         }};
     }
 
+    public static String pad(String s, int len) {
+        StringBuilder sBuilder = new StringBuilder(s);
+        while (sBuilder.length() < len) {
+            sBuilder.append(" ");
+        }
+        s = sBuilder.toString();
+        return s;
+    }
+
     @Override
     public String toString() {
         return piece + ": " + from + " -> " + to
                 + scoreString()
-                + (taken != null ? " t: " + taken.getClass().getSimpleName() : "");
+                + (taken != null ? " t: " + pad(getClass().getSimpleName(),6) : "");
     }
 
     protected String scoreString() {
@@ -189,7 +198,7 @@ public class Move implements Comparable<Move> {
                 scoreString = score.toString();
             }
             String openBracket = (score >= 0) ? " ( " : " (";
-            return openBracket + String.format("%s", scoreString) + ")";
+            return openBracket + scoreString + ")";
         } else {
             return "";
         }
@@ -243,15 +252,15 @@ public class Move implements Comparable<Move> {
     public void setEvaluationTracker(EvaluationTracker evaluationTracker) {
         this.evaluationTracker = evaluationTracker;
     }
-    
+
     public ArrayList<String> evaluationInfo() {
         return new ArrayList<String>(){{
             if (evaluationTracker != null) {
-                add(String.format("Depth reached:  %8d", evaluationTracker.getDepth()));
-                add(String.format("Transpositions: %8d", evaluationTracker.getTranspositions()));
-                add(String.format("Leaf nodes:     %8d", evaluationTracker.getLeafNodes()));
-                add(String.format("Evaluations:    %8d", evaluationTracker.getEvaluations()));
-                add(String.format("Time taken:        %.2fs", evaluationTracker.getTimeTaken()));
+                add("Depth reached:  " + evaluationTracker.getDepth());
+                add("Transpositions: " + evaluationTracker.getTranspositions());
+                add("Leaf nodes:     " + evaluationTracker.getLeafNodes());
+                add("Evaluations:    " + evaluationTracker.getEvaluations());
+                add("Time taken:        " + evaluationTracker.getTimeTaken());
             }
         }};
     }

@@ -129,7 +129,7 @@ public class RenderedBoard extends Board {
         focusedOn = null;
         clickedMove = null;
         checkEndOfGame();
-        System.out.format("Zobrist hash: %d\n\n", zobristTracker.getVal());
+//        System.out.format("Zobrist hash: %d\n\n", zobristTracker.getVal());
     }
 
     public void checkEndOfGame() {
@@ -172,25 +172,27 @@ public class RenderedBoard extends Board {
 
     private void declareCheckmate() {
         checkmated = true;
-
-        endOfGameMessage = String.format(
-                "Checkmate! Victory to %s in %d moves",
-                nextTurn.opponent(),
-                // if black just checkmated, it won't really be 'next turn'
-                nextTurn == Side.WHITE ? fullmoveNumber - 1 : fullmoveNumber
+        endOfGameMessage = (
+                "Checkmate! Victory to " +
+                nextTurn.opponent() +
+                " in " +
+                (nextTurn == Side.WHITE ? fullmoveNumber - 1 : fullmoveNumber) +
+                " moves"
         );
     }
 
     private void declareStalemate() {
         stalemated = true;
-        endOfGameMessage = String.format(
-                "Stalemate... How boring. In %d moves",
-                fullmoveNumber
-        );
+        endOfGameMessage = "Stalemate... How boring. In " + fullmoveNumber + " moves";
     }
 
     public boolean gameFinished() {
         return checkmated || stalemated;
+    }
+
+    private int getNumericValue(char c) {
+        int ascii = (int) c;
+        return ascii - 48;
     }
 
     private void initialise(String fen) {
@@ -204,7 +206,7 @@ public class RenderedBoard extends Board {
             for (int col = 0; col < SIZE; col++) {
                 char currentChar = boardRows[row].charAt(charInRow);
                 if (Character.isDigit(currentChar)) {
-                    col += Character.getNumericValue(currentChar) - 1;
+                    col += getNumericValue(currentChar) - 1;
                 } else {
                     Side pieceSide = (Character.isUpperCase(currentChar)) ?
                             Side.WHITE : Side.BLACK;
@@ -335,7 +337,7 @@ public class RenderedBoard extends Board {
             char colChar = fenComponents[3].charAt(0);
             char rowChar = fenComponents[3].charAt(1);
             int col = colChar - 'a';
-            int row = 8 - Character.getNumericValue(rowChar);
+            int row = 8 - getNumericValue(rowChar);
             int lastMoveToRow = (row == 2) ? 3 : 4;
             int lastMoveFromRow = (row == 2) ? 1 : 6;
             Square movedTo = new Square(lastMoveToRow, col);

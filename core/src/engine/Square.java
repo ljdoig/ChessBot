@@ -42,7 +42,7 @@ public class Square {
     @Override
     public String toString() {
         char colChar = (char) (col + 97);
-        return String.format("%c%d", colChar, 8 - row);
+        return Character.toString(colChar) + (8 - row);
     }
     
     public boolean equals(Square other) {

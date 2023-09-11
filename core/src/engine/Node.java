@@ -9,6 +9,7 @@ public class Node {
             new HashMap<>();
     private static EvaluationTracker evaluationTracker = new EvaluationTracker(0);
     private static boolean training;
+    private static long startTime;
     public final boolean isRoot;
     public final Board board;
     public final Move precedingMove;
@@ -27,7 +28,7 @@ public class Node {
     }
 
     public int negamax(int depth, int alpha, int beta) {
-        if (Thread.currentThread().isInterrupted()) {
+        if (System.currentTimeMillis() - startTime >= Scorer.TIME_CAP_MILLIS) {
             return Integer.MAX_VALUE;
         }
 
@@ -142,5 +143,9 @@ public class Node {
 
     public static void setTraining(boolean training) {
         Node.training = training;
+    }
+
+    public static void setStartTime(long startTime) {
+        Node.startTime = startTime;
     }
 }

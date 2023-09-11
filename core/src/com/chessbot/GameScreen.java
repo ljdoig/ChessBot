@@ -155,7 +155,7 @@ public class GameScreen implements Screen {
         if (testingMove != null && testingMove.getEvaluationTracker() != null) {
             relevantMove = testingMove;
             game.drawText(
-                    String.format("Analysis of %s", testingMove),
+                    "Analysis of " + testingMove,
                     col, yCoordForText(row++)
             );
         } else if (!thinking) {
@@ -216,9 +216,9 @@ public class GameScreen implements Screen {
               board.gameFinished() && board.getNextTurn() == Side.WHITE ?
                       board.getFullmoveNumber() - 1 : board.getFullmoveNumber());
         return new ArrayList<String>(){{
-            add(String.format("Turn:            %3d", displayedTurn));
-            add(String.format("Half-move clock: %3d", board.getHalfmoveClock()));
-            add(String.format("Zobrist hash: %s",board.zobristTracker.getVal()));
+            add("Turn:                " + displayedTurn);
+            add("Half-move clock: " + board.getHalfmoveClock());
+            add("Zobrist hash: " + board.zobristTracker.getVal());
         }};
     }
 
